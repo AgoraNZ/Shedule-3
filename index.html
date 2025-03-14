@@ -69,7 +69,7 @@
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Schedule 3</h1>
     <form id="schedule3-form">
-      <!-- Farm Details Section (same as before but with autocorrect enabled) -->
+      <!-- Farm Details Section (with autocorrect enabled) -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
@@ -183,7 +183,7 @@
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
       });
     }
-    // Enable autocorrect on every text input – note the attribute is added in the HTML attributes.
+    // Enable autocorrect on every text input – attribute also set in HTML.
     function autoCapitalizeInput(id) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -220,7 +220,7 @@
       });
     }
     
-    /* Farm details: use same approach as original but save to Agora schedule 3 farm details */
+    /* Farm details: saving to Agora schedule 3 farm details */
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
@@ -237,9 +237,8 @@
           document.getElementById('region').value = data.region || '';
           document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
           document.getElementById('island').value = data.island || '';
-          // For Schedule3 extra fields, load saved checklist details (install date, replacement due, rubberware size)
           if(data.checklistExtra){
-            schedule3ChecklistItemsData = data.checklistExtra; // global variable used in checklist creation
+            schedule3ChecklistItemsData = data.checklistExtra;
             updateSchedule3ChecklistExtra();
           }
         }
@@ -258,7 +257,6 @@
         region: fd.get("region") || "",
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || "",
-        // extraData contains an object mapping each checklist item to its extra fields:
         checklistExtra: extraData
       };
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
@@ -288,7 +286,6 @@
     }
     
     /* Create Schedule 3 Checklist Items with extra fields */
-    // Global object to store extra data; used for auto-populating extra fields.
     let schedule3ChecklistItemsData = {};
     function createSchedule3ChecklistItems() {
       const checklistItems = [
@@ -308,11 +305,9 @@
       checklistItems.forEach(item => {
         const itemContainer = document.createElement("div");
         itemContainer.classList.add("checklist-item");
-        // Label for checklist item
         const label = document.createElement("label");
         label.textContent = item;
         itemContainer.appendChild(label);
-        // Dropdown for status
         const statusSelect = document.createElement("select");
         statusSelect.classList.add("form-select");
         statusSelect.name = `status-${item}`;
@@ -323,7 +318,6 @@
           <option value="not-checked">Not Checked</option>
         `;
         itemContainer.appendChild(statusSelect);
-        // Input for Comments with autocorrect enabled
         const commentsInput = document.createElement("input");
         commentsInput.type = "text";
         commentsInput.classList.add("form-control");
@@ -331,7 +325,6 @@
         commentsInput.placeholder = "Comments";
         commentsInput.autocorrect = "on";
         itemContainer.appendChild(commentsInput);
-        // Two file inputs for photos
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -341,10 +334,8 @@
           preview.classList.add("image-preview");
           itemContainer.appendChild(preview);
         }
-        // Extra fields container for Schedule 3 data
         const extraContainer = document.createElement("div");
         extraContainer.classList.add("extra-fields");
-        // Install Date
         const installLabel = document.createElement("label");
         installLabel.textContent = "Install Date:";
         extraContainer.appendChild(installLabel);
@@ -353,7 +344,6 @@
         installInput.classList.add("form-control");
         installInput.name = `install-${item}`;
         extraContainer.appendChild(installInput);
-        // Replacement Due Date
         const replaceLabel = document.createElement("label");
         replaceLabel.textContent = "Replacement Due Date:";
         extraContainer.appendChild(replaceLabel);
@@ -362,7 +352,6 @@
         replaceInput.classList.add("form-control");
         replaceInput.name = `replacement-${item}`;
         extraContainer.appendChild(replaceInput);
-        // Rubberware Size (can be multi-part; here we use one text field)
         const rubberLabel = document.createElement("label");
         rubberLabel.textContent = "Rubberware Size (e.g. tube dimensions & quantity):";
         extraContainer.appendChild(rubberLabel);
@@ -373,28 +362,22 @@
         rubberInput.autocorrect = "on";
         extraContainer.appendChild(rubberInput);
         itemContainer.appendChild(extraContainer);
-        
-        // When status changes, show/hide file inputs as before.
         statusSelect.addEventListener("change", () => {
           const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
           fileInputs.forEach(inp => {
             inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
           });
         });
-        
-        // If global data exists, prepopulate the extra fields.
         if (schedule3ChecklistItemsData[item]) {
           const extra = schedule3ChecklistItemsData[item];
           installInput.value = extra.installDate || "";
           replaceInput.value = extra.replacementDue || "";
           rubberInput.value = extra.rubberwareSize || "";
         }
-        
         container.appendChild(itemContainer);
       });
     }
     
-    // Function to update global extra data from the form checklist items.
     function getSchedule3ChecklistExtraData() {
       const extraData = {};
       const container = document.getElementById("schedule3-checklist-items");
@@ -415,7 +398,6 @@
       return extraData;
     }
     
-    // Called after loading saved extra data to repopulate checklist extra fields.
     function updateSchedule3ChecklistExtra() {
       const container = document.getElementById("schedule3-checklist-items");
       const items = container.getElementsByClassName("checklist-item");
@@ -452,10 +434,7 @@
       const form = document.getElementById("schedule3-form");
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      
-      // Save extra checklist fields separately
       data.checklistExtra = getSchedule3ChecklistExtraData();
-      
       record.formData = data;
       await db.schedule3Forms.put(record);
     }
@@ -475,10 +454,8 @@
       if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
       const form = document.getElementById("schedule3-form");
       const fd = new FormData(form);
-      // Save the farm details (including extra checklist data) to the Schedule 3 farm details folder
       await saveFarmDetailsToFirebase(fd, getSchedule3ChecklistExtraData());
       
-      // Gather checklist items data for PDF (status, comments)
       const container = document.getElementById("schedule3-checklist-items");
       const checklistData = [];
       let imagePromises = [];
@@ -507,7 +484,6 @@
         checklistData.push([itemName, status, comments]);
       });
       
-      // Extra fields table (Install Date, Replacement Due Date, Rubberware Size)
       let extraDataTable = [];
       const extraData = getSchedule3ChecklistExtraData();
       for (let key in extraData) {
@@ -515,12 +491,12 @@
         extraDataTable.push([key, installDate, replacementDue, rubberwareSize]);
       }
       
-      // Prepare PDF layout
       const pdf = new jsPDF("p", "pt", "a4");
       let currentY = 40;
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      // Add logo
+      
+      // Attempt to load logo
       try {
         const logoUrl = await storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL();
         const res = await fetch(logoUrl);
@@ -542,7 +518,6 @@
       }
       
       function addFarmDetailsAndTables(pdf) {
-        // Farm details table
         const farmDetailsRows = [
           [
             { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -568,7 +543,6 @@
         });
         currentY = pdf.lastAutoTable.finalY + 20;
         
-        // Checklist Items table
         pdf.setFont("helvetica", "bold");
         pdf.text("Checklist Items:", 40, currentY);
         currentY += 10;
@@ -582,7 +556,6 @@
         });
         currentY = pdf.lastAutoTable.finalY + 20;
         
-        // Extra Data table for schedule 3 extra fields
         pdf.setFont("helvetica", "bold");
         pdf.text("Extra Details:", 40, currentY);
         currentY += 10;
@@ -596,7 +569,6 @@
         });
         currentY = pdf.lastAutoTable.finalY + 20;
         
-        // Attached photos
         if (photoStore.length > 0) {
           pdf.setFont("helvetica", "bold");
           if (currentY + 20 > pageHeight) {
@@ -635,7 +607,14 @@
         
         (async function(){
           const pdfBlob = pdf.output("blob");
-          const fileName = `${fd.get("dairy-number")}-schedule3.pdf`;
+          // Use visit date as the file name (if provided; otherwise fall back)
+          const visitDate = fd.get("visit-date");
+          let fileName = "";
+          if(visitDate) {
+            fileName = `${visitDate}.pdf`;
+          } else {
+            fileName = `${fd.get("dairy-number")}-schedule3.pdf`;
+          }
           try {
             await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
             console.log("Schedule 3 PDF uploaded successfully.");
@@ -688,7 +667,6 @@
       const storageRef = storage.ref("Agora schedule 3 Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
-        // List subfolders (dairyNumber folders)
         if (folderSnapshot.prefixes.length > 0) {
           folderSnapshot.prefixes.forEach(folderRef => {
             const dairyNumber = folderRef.name;
@@ -700,7 +678,6 @@
             recordList.appendChild(link);
           });
         }
-        // List files directly in the folder if any
         if (folderSnapshot.items.length > 0) {
           folderSnapshot.items.forEach(fileRef => {
             const fileName = fileRef.name;
@@ -786,7 +763,6 @@
       try {
         const folderSnapshot = await storageRef.listAll();
         if (folderSnapshot.items.length > 0) {
-          // For each saved farm details file, fetch and display key extra info.
           for (let fileRef of folderSnapshot.items) {
             try {
               const url = await fileRef.getDownloadURL();
@@ -810,6 +786,11 @@
               console.error("Error loading farm details:", e);
             }
           }
+          if(datesList.innerHTML === ""){
+            datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
+          }
+        } else {
+          datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
         }
       } catch (error) {
         console.error("Error fetching schedule 3 farm details:", error);
