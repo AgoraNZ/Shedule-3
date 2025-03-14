@@ -9,7 +9,6 @@
   <style>
     body {
       background-color: #d2d7dd;
-      color: #000;
       font-family: Arial, sans-serif;
       min-height: 100vh;
       display: flex;
@@ -18,159 +17,58 @@
       padding: 20px;
       margin: 0;
     }
-    .container, .record-container, .change-dates-container {
-      background-color: #d2d7dd;
+    .container, .change-dates-container {
+      background-color: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
       max-width: 800px;
       width: 100%;
     }
-    .record-container, .change-dates-container {
-      background-color: #fff;
-    }
-    h1, h2, h3, h4 { text-align: center; }
-    h1, h2 { color: #333; }
-    h3 { color: #002B5C; margin-top: 20px; }
-    h4 { color: #555; margin-top: 10px; }
-    label { color: #000; margin-top: 10px; }
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    select {
-      margin-bottom: 10px;
-    }
+    h1, h2, h3 { text-align: center; }
     button {
       background-color: #FFD700;
-      color: #000;
       border: none;
       padding: 10px 20px;
       cursor: pointer;
-      display: inline-block;
       margin: 10px 5px;
       border-radius: 5px;
     }
-    button:hover { background-color: #E6C200; }
     .back-button { background-color: #002B5C; color: #fff; }
-    .image-upload { display: none; }
-    .image-preview {
+    .change-dates-container {
       display: none;
-      max-width: 200px;
-      max-height: 200px;
-      margin-top: 5px;
-      border: 2px solid #ccc;
+      padding: 20px;
     }
-    .extra-fields {
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px dashed #888;
+    .farm-box {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
     }
-    .version {
-      text-align: center;
-      margin-top: 20px;
-      color: #333;
-      font-size: 12px;
-    }
+    .farm-box h4 { margin-bottom: 10px; }
+    .checklist-item { margin-bottom: 15px; }
   </style>
 </head>
 <body>
-  <!-- MAIN FORM CONTAINER -->
+
+  <!-- MAIN FORM -->
   <div class="container" id="form-container">
-    <!-- Logo -->
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
-         alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Schedule 3</h1>
-    <form id="schedule3-form">
-      <!-- Farm Details Section -->
-      <div class="section mb-4">
-        <h2>Farm Details</h2>
-        <label for="dairy-number">Dairy Number:</label>
-        <input type="text" class="form-control" id="dairy-number" name="dairy-number" 
-               onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
-        <label for="dairy-company">Dairy Company:</label>
-        <input type="text" class="form-control" id="dairy-company" name="dairy-company" 
-               list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
-        <datalist id="dairy-company-list"></datalist>
-        <label for="address">Address:</label>
-        <input type="text" class="form-control" id="address" name="address" 
-               autocapitalize="words" autocorrect="on" spellcheck="false">
-        <label for="customer-name">Customer Name:</label>
-        <input type="text" class="form-control" id="customer-name" name="customer-name" 
-               autocapitalize="words" autocorrect="on" spellcheck="false">
-        <label for="region">Region:</label>
-        <select id="region" name="region" class="form-select">
-          <option value="northland">Northland</option>
-          <option value="auckland">Auckland</option>
-          <option value="waikato">Waikato</option>
-          <option value="bay-of-plenty">Bay of Plenty</option>
-          <option value="gisborne">Gisborne</option>
-          <option value="hawkes-bay">Hawke's Bay</option>
-          <option value="taranaki">Taranaki</option>
-          <option value="manawatu-wanganui">Manawatu-Wanganui</option>
-          <option value="wellington">Wellington</option>
-          <option value="nelson">Nelson</option>
-          <option value="marlborough">Marlborough</option>
-          <option value="west-coast">West Coast</option>
-          <option value="canterbury">Canterbury</option>
-          <option value="otago">Otago</option>
-          <option value="southland">Southland</option>
-        </select>
-        <label for="farm-name">Farm Name:</label>
-        <input type="text" class="form-control" id="farm-name" name="farm-name" 
-               autocapitalize="words" autocorrect="on" spellcheck="false">
-        <label for="island">Island:</label>
-        <select id="island" name="island" class="form-select">
-          <option value="north-island">North Island</option>
-          <option value="south-island">South Island</option>
-        </select>
-        <label for="visit-date">Visit Date:</label>
-        <input type="date" class="form-control" id="visit-date" name="visit-date">
-      </div>
-      
-      <!-- Schedule 3 Checklist Section -->
-      <div class="section mb-4">
-        <h2>Schedule 3 Checklist</h2>
-        <div id="schedule3-checklist-items"></div>
-      </div>
-      
-      <!-- Buttons -->
-      <div style="text-align: center;">
-        <button type="button" onclick="generateSchedule3PDF()">Generate PDF</button>
-        <button type="button" onclick="viewSchedule3Records()">View All Records</button>
-        <button type="button" onclick="changeSchedule3Dates()">Change Dates</button>
-      </div>
-    </form>
-    <div class="version">Version 1.0 (Agora Schedule 3)</div>
+    <button onclick="changeSchedule3Dates()">Change Dates</button>
   </div>
-  
-  <!-- RECORDS VIEW (Schedule 3) -->
-  <div id="record-container" class="record-container" style="display: none;">
-    <h2>All Schedule 3 Records</h2>
-    <div class="search-container">
-      <input type="text" id="search-dairy-number" class="form-control" 
-             placeholder="Search by Dairy Number" oninput="filterRecordsSchedule3()">
-    </div>
-    <div id="record-list" class="record-list"></div>
-    <button class="back-button" onclick="goBackSchedule3()">Back to Form</button>
-  </div>
-  
-  <!-- CHANGE DATES VIEW (Schedule 3) -->
-  <div id="change-dates-page" class="change-dates-container" style="display: none;">
+
+  <!-- CHANGE DATES FEATURE (Like Pilot Checks) -->
+  <div id="change-dates-container" class="change-dates-container">
     <h2>Schedule 3 Farm Details</h2>
-    <div id="dates-list" class="dates-list"></div>
-    <button class="back-button" onclick="backToSchedule3Form()">Back to Form</button>
+    <div id="farms-list"></div>
+    <button class="back-button" onclick="backToForm()">Back to Form</button>
   </div>
-  
-  <!-- SCRIPTS -->
+
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.0.3/dexie.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    /* Firebase & Dexie Initialization */
-    const { jsPDF } = window.jspdf;
+    // Firebase Initialization
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -181,664 +79,121 @@
     };
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
-    const firestore = firebase.firestore();
-    const db = new Dexie("OfflineData");
-    db.version(5).stores({
-      schedule3Forms: "dairyNumber",
-      dairyCompanies: "++id, name",
-      pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
-    });
-    
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('Service Worker registered:', reg.scope))
-        .catch(err => console.error('SW registration failed:', err));
-    }
-    
-    /* Utility Functions */
-    function toTitleCase(str) {
-      return str.replace(/\w\S*/g, function(txt) {
-        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-      });
-    }
-    function autoCapitalizeInput(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
-    }
-    
-    async function setupDairyCompanyDatalist() {
-      const defaultCompanies = [
-        "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
-        "Oceania", "OFI", "Synlait Milk LTD", "Tatua", "Danone", "Fresha Valley LTD",
-        "Mataura Valley Milk", "Open Country Dairy LTD", "Waiu", "Westland Milk Products"
-      ];
-      const userCompanies = await db.dairyCompanies.toArray();
-      const allCompanies = [...defaultCompanies];
-      userCompanies.forEach(u => { 
-        if (!allCompanies.includes(u.name)) { 
-          allCompanies.push(u.name); 
-        }
-      });
-      const datalist = document.getElementById('dairy-company-list');
-      datalist.innerHTML = "";
-      allCompanies.forEach(c => { 
-        const opt = document.createElement('option');
-        opt.value = c;
-        datalist.appendChild(opt);
-      });
-      const dairyCompanyInput = document.getElementById('dairy-company');
-      dairyCompanyInput.addEventListener('blur', async () => {
-        dairyCompanyInput.value = toTitleCase(dairyCompanyInput.value.trim());
-        const typedValue = dairyCompanyInput.value;
-        if (typedValue && !allCompanies.includes(typedValue)) {
-          await db.dairyCompanies.add({ name: typedValue });
-          allCompanies.push(typedValue);
-          const newOpt = document.createElement('option');
-          newOpt.value = typedValue;
-          datalist.appendChild(newOpt);
-        }
-      });
-    }
-    
-    /* Farm Details – Save to “Agora schedule 3 farm details” */
-    async function fetchFarmDetails() {
-      const dairyNumber = document.getElementById('dairy-number').value.trim();
-      if (!dairyNumber) return;
-      const storageRef = storage.ref(`Agora schedule 3 farm details/${dairyNumber}.json`);
-      try {
-        const url = await storageRef.getDownloadURL();
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch farm details');
-        const data = await response.json();
-        if (data) {
-          document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
-          document.getElementById('address').value = toTitleCase(data.address || '');
-          document.getElementById('customer-name').value = toTitleCase(data.customerName || '');
-          document.getElementById('region').value = data.region || '';
-          document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
-          document.getElementById('island').value = data.island || '';
-          if(data.checklistExtra){
-            schedule3ChecklistItemsData = data.checklistExtra;
-            updateSchedule3ChecklistExtra();
-          }
-        }
-      } catch (error) {
-        console.log('No farm details found or error:', error);
-      }
-    }
-    
-    async function saveFarmDetailsToFirebase(fd, extraData) {
-      const dairyNumber = fd.get("dairy-number") || "";
-      if (!dairyNumber) return;
-      const farmDetails = {
-        dairyCompany: fd.get("dairy-company") || "",
-        address: fd.get("address") || "",
-        customerName: fd.get("customer-name") || "",
-        region: fd.get("region") || "",
-        farmName: fd.get("farm-name") || "",
-        island: fd.get("island") || "",
-        checklistExtra: extraData
-      };
-      const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
-      try {
-        const storageRefFarm = storage.ref(`Agora schedule 3 farm details/${dairyNumber}.json`);
-        await storageRefFarm.put(jsonBlob);
-        console.log("Schedule 3 farm details saved.");
-      } catch (err) {
-        console.error("Error saving Schedule 3 farm details:", err);
-      }
-    }
-    
-    async function checkOrCreateFormRecord() {
-      const dairyNumber = document.getElementById('dairy-number').value.trim();
-      if (!dairyNumber) return;
-      let record = await db.schedule3Forms.get(dairyNumber);
-      if (!record) {
-        record = { dairyNumber, formData: {}, creationTime: Date.now() };
-        await db.schedule3Forms.put(record);
-      }
-    }
-    async function handleDairyNumberBlur() {
-      const dairyNumber = document.getElementById('dairy-number').value.trim();
-      if (!dairyNumber) return;
-      fetchFarmDetails();
-      await checkOrCreateFormRecord();
-    }
-    
-    /* Schedule 3 Checklist Items with Extra Fields */
-    let schedule3ChecklistItemsData = {};
-    function createSchedule3ChecklistItems() {
-      const checklistItems = [
-        "Cluster to milk line",
-        "Cluster short Pulse tubes",
-        "Cluster pulse tube to pulsator",
-        "Cluster bowl seal",
-        "Cluster small ring seal",
-        "Liners",
-        "Milk filter seal",
-        "Front Vat tap seal",
-        "Back vat tap seal",
-        "Vat door seal"
-      ];
-      const container = document.getElementById("schedule3-checklist-items");
-      container.innerHTML = "";
-      checklistItems.forEach(item => {
-        const itemContainer = document.createElement("div");
-        itemContainer.classList.add("checklist-item");
-        const label = document.createElement("label");
-        label.textContent = item;
-        itemContainer.appendChild(label);
-        const statusSelect = document.createElement("select");
-        statusSelect.classList.add("form-select");
-        statusSelect.name = `status-${item}`;
-        statusSelect.innerHTML = `
-          <option value="ok">OK</option>
-          <option value="attention-required">Attention Required</option>
-          <option value="na">N/A</option>
-          <option value="not-checked">Not Checked</option>
-        `;
-        itemContainer.appendChild(statusSelect);
-        const commentsInput = document.createElement("input");
-        commentsInput.type = "text";
-        commentsInput.classList.add("form-control");
-        commentsInput.name = `comments-${item}`;
-        commentsInput.placeholder = "Comments";
-        commentsInput.autocorrect = "on";
-        itemContainer.appendChild(commentsInput);
-        for (let i = 0; i < 2; i++) {
-          const fileInput = document.createElement("input");
-          fileInput.type = "file";
-          fileInput.classList.add("form-control", "image-upload");
-          itemContainer.appendChild(fileInput);
-          const preview = document.createElement("img");
-          preview.classList.add("image-preview");
-          itemContainer.appendChild(preview);
-        }
-        const extraContainer = document.createElement("div");
-        extraContainer.classList.add("extra-fields");
-        const installLabel = document.createElement("label");
-        installLabel.textContent = "Install Date:";
-        extraContainer.appendChild(installLabel);
-        const installInput = document.createElement("input");
-        installInput.type = "date";
-        installInput.classList.add("form-control");
-        installInput.name = `install-${item}`;
-        extraContainer.appendChild(installInput);
-        const replaceLabel = document.createElement("label");
-        replaceLabel.textContent = "Replacement Due Date:";
-        extraContainer.appendChild(replaceLabel);
-        const replaceInput = document.createElement("input");
-        replaceInput.type = "date";
-        replaceInput.classList.add("form-control");
-        replaceInput.name = `replacement-${item}`;
-        extraContainer.appendChild(replaceInput);
-        const rubberLabel = document.createElement("label");
-        rubberLabel.textContent = "Rubberware Size (e.g. tube dimensions & quantity):";
-        extraContainer.appendChild(rubberLabel);
-        const rubberInput = document.createElement("input");
-        rubberInput.type = "text";
-        rubberInput.classList.add("form-control");
-        rubberInput.name = `rubber-${item}`;
-        rubberInput.autocorrect = "on";
-        extraContainer.appendChild(rubberInput);
-        itemContainer.appendChild(extraContainer);
-        statusSelect.addEventListener("change", () => {
-          const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
-          fileInputs.forEach(inp => {
-            inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
-          });
-        });
-        if (schedule3ChecklistItemsData[item]) {
-          const extra = schedule3ChecklistItemsData[item];
-          installInput.value = extra.installDate || "";
-          replaceInput.value = extra.replacementDue || "";
-          rubberInput.value = extra.rubberwareSize || "";
-        }
-        container.appendChild(itemContainer);
-      });
-    }
-    
-    function getSchedule3ChecklistExtraData() {
-      const extraData = {};
-      const container = document.getElementById("schedule3-checklist-items");
-      const items = container.getElementsByClassName("checklist-item");
-      Array.from(items).forEach(itemContainer => {
-        const label = itemContainer.querySelector("label");
-        if (!label) return;
-        const key = label.textContent.trim();
-        const installInput = itemContainer.querySelector(`input[name="install-${key}"]`);
-        const replaceInput = itemContainer.querySelector(`input[name="replacement-${key}"]`);
-        const rubberInput = itemContainer.querySelector(`input[name="rubber-${key}"]`);
-        extraData[key] = {
-          installDate: installInput ? installInput.value : "",
-          replacementDue: replaceInput ? replaceInput.value : "",
-          rubberwareSize: rubberInput ? rubberInput.value : ""
-        };
-      });
-      return extraData;
-    }
-    
-    function updateSchedule3ChecklistExtra() {
-      const container = document.getElementById("schedule3-checklist-items");
-      const items = container.getElementsByClassName("checklist-item");
-      Array.from(items).forEach(itemContainer => {
-        const label = itemContainer.querySelector("label");
-        if (!label) return;
-        const key = label.textContent.trim();
-        if (schedule3ChecklistItemsData[key]) {
-          const extra = schedule3ChecklistItemsData[key];
-          const installInput = itemContainer.querySelector(`input[name="install-${key}"]`);
-          const replaceInput = itemContainer.querySelector(`input[name="replacement-${key}"]`);
-          const rubberInput = itemContainer.querySelector(`input[name="rubber-${key}"]`);
-          if (installInput) installInput.value = extra.installDate || "";
-          if (replaceInput) replaceInput.value = extra.replacementDue || "";
-          if (rubberInput) rubberInput.value = extra.rubberwareSize || "";
-        }
-      });
-    }
-    
-    /* Clear & Save Schedule 3 Form Data */
-    function clearSchedule3Form() {
-      document.getElementById("schedule3-form").reset();
-      const imageUploads = document.querySelectorAll(".image-upload");
-      imageUploads.forEach(inp => { inp.style.display = "none"; });
-      const previews = document.querySelectorAll(".image-preview");
-      previews.forEach(img => { img.src = ""; img.style.display = "none"; });
-    }
-    
-    async function saveSchedule3FormData() {
-      const dairyNumber = document.getElementById("dairy-number").value.trim();
-      if (!dairyNumber) return;
-      let record = await db.schedule3Forms.get(dairyNumber);
-      if (!record) { record = { dairyNumber, formData: {}, creationTime: Date.now() }; }
-      const form = document.getElementById("schedule3-form");
-      const formDataObj = new FormData(form);
-      const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      data.checklistExtra = getSchedule3ChecklistExtraData();
-      record.formData = data;
-      await db.schedule3Forms.put(record);
-    }
-    
-    function convertFileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-    
-    /* PDF Generation for Schedule 3 */
-    async function generateSchedule3PDF() {
-      const dairyNumber = document.getElementById("dairy-number").value.trim();
-      if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
-      const form = document.getElementById("schedule3-form");
-      const fd = new FormData(form);
-      await saveFarmDetailsToFirebase(fd, getSchedule3ChecklistExtraData());
-      
-      const container = document.getElementById("schedule3-checklist-items");
-      const checklistData = [];
-      let imagePromises = [];
-      let photoStore = [];
-      const items = container.getElementsByClassName("checklist-item");
-      Array.from(items).forEach(item => {
-        const labelEl = item.querySelector("label");
-        if (!labelEl) return;
-        const itemName = labelEl.textContent;
-        const status = item.querySelector("select")?.value || "";
-        let comments = item.querySelector("input[name^='comments-']")?.value || "";
-        const fileInputs = item.querySelectorAll("input[type='file']");
-        let images = [];
-        fileInputs.forEach(inp => {
-          if (inp.files && inp.files[0]) { images.push(inp.files[0]); }
-        });
-        if (status === "attention-required" && images.length > 0) {
-          const photoNote = images.length > 1 ? " (see attached photos)" : " (see attached photo)";
-          comments += photoNote;
-          const p = { itemName, images: [] };
-          images.forEach((file, idx) => {
-            imagePromises.push(convertFileToBase64(file).then(result => { p.images[idx] = result; }));
-          });
-          photoStore.push(p);
-        }
-        checklistData.push([itemName, status, comments]);
-      });
-      
-      let extraDataTable = [];
-      const extraData = getSchedule3ChecklistExtraData();
-      for (let key in extraData) {
-        const { installDate, replacementDue, rubberwareSize } = extraData[key];
-        extraDataTable.push([key, installDate, replacementDue, rubberwareSize]);
-      }
-      
-      const pdf = new jsPDF("p", "pt", "a4");
-      let currentY = 40;
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      // Attempt to load logo
-      try {
-        const logoUrl = await storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL();
-        const res = await fetch(logoUrl);
-        const blob = await res.blob();
-        const logoBase64 = await convertFileToBase64(blob);
-        const img = new Image();
-        img.onload = function() {
-          const fixedLogoWidth = 150;
-          const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
-          const x = (pageWidth - fixedLogoWidth) / 2;
-          pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
-          currentY = 40 + fixedLogoHeight + 20;
-          addFarmDetailsAndTables(pdf);
-        };
-        img.src = logoBase64;
-      } catch(err) {
-        console.error("Logo error:", err);
-        addFarmDetailsAndTables(pdf);
-      }
-      
-      function addFarmDetailsAndTables(pdf) {
-        const farmDetailsRows = [
-          [
-            { content: "Dairy Company:", styles: { fontStyle: "bold" } },
-            { content: (fd.get("dairy-company") || ""), styles: { fontStyle: "normal" } },
-            { content: "Visit Date:", styles: { fontStyle: "bold" } },
-            { content: (fd.get("visit-date") || ""), styles: { fontStyle: "normal" } }
-          ],
-          [
-            { content: "Dairy Number:", styles: { fontStyle: "bold" } },
-            { content: (fd.get("dairy-number") || ""), styles: { fontStyle: "normal" } },
-            { content: "Customer Name:", styles: { fontStyle: "bold" } },
-            { content: (fd.get("customer-name") || ""), styles: { fontStyle: "normal" } }
-          ]
-        ];
-        pdf.autoTable({
-          startY: currentY,
-          head: [["Farm Details", "", "", ""]],
-          body: farmDetailsRows,
-          theme: 'grid',
-          styles: { fontSize: 10, cellPadding: 5 },
-          headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-          margin: { left: 40, right: 40 }
-        });
-        currentY = pdf.lastAutoTable.finalY + 20;
-        
-        pdf.setFont("helvetica", "bold");
-        pdf.text("Checklist Items:", 40, currentY);
-        currentY += 10;
-        pdf.autoTable({
-          startY: currentY,
-          head: [["Item", "Status", "Comments"]],
-          body: checklistData,
-          styles: { fontSize: 10, cellPadding: 5 },
-          headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-          margin: { left: 40, right: 40 }
-        });
-        currentY = pdf.lastAutoTable.finalY + 20;
-        
-        pdf.setFont("helvetica", "bold");
-        pdf.text("Extra Details:", 40, currentY);
-        currentY += 10;
-        pdf.autoTable({
-          startY: currentY,
-          head: [["Checklist Item", "Install Date", "Replacement Due", "Rubberware Size"]],
-          body: extraDataTable,
-          styles: { fontSize: 10, cellPadding: 5 },
-          headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-          margin: { left: 40, right: 40 }
-        });
-        currentY = pdf.lastAutoTable.finalY + 20;
-        
-        if (photoStore.length > 0) {
-          pdf.setFont("helvetica", "bold");
-          if (currentY + 20 > pageHeight) {
-            pdf.addPage();
-            currentY = 40;
-          }
-          pdf.text("Attached Photos:", 40, currentY);
-          currentY += 20;
-          photoStore.forEach(photoItem => {
-            if (currentY + 15 > pageHeight) {
-              pdf.addPage();
-              currentY = 40;
-            }
-            pdf.setFont("helvetica", "bold");
-            pdf.text(photoItem.itemName, 40, currentY);
-            currentY += 15;
-            let maxImgHeight = 0;
-            photoItem.images.forEach((img, idx) => {
-              try {
-                const imgProps = pdf.getImageProperties(img);
-                const imgWidth = 250;
-                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                if (currentY + imgHeight > pageHeight) {
-                  pdf.addPage();
-                  currentY = 40;
-                }
-                pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
-                if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
-              } catch(e) {
-                console.error("Error adding image:", e);
-              }
-            });
-            currentY += maxImgHeight + 20;
-          });
-        }
-        
-        (async function(){
-          const pdfBlob = pdf.output("blob");
-          const visitDate = fd.get("visit-date");
-          let fileName = "";
-          if(visitDate) {
-            fileName = `${visitDate}.pdf`;
-          } else {
-            fileName = `${fd.get("dairy-number")}-schedule3.pdf`;
-          }
-          try {
-            await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
-            console.log("Schedule 3 PDF uploaded successfully.");
-          } catch(e) {
-            console.error("Schedule 3 PDF upload failed:", e);
-            db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "schedule3" });
-          }
-          db.schedule3Forms.delete(fd.get("dairy-number"));
-          pdf.save(fileName);
-          uploadPendingPDFs();
-          clearSchedule3Form();
-          location.reload();
-        })();
-      }
-    }
-    
-    function uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob) {
-      return new Promise((resolve, reject) => {
-        const uploadRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}/${fileName}`);
-        const task = uploadRef.put(pdfBlob);
-        task.on("state_changed", null, err => reject(err), () => resolve());
-      });
-    }
-    
-    async function uploadPendingPDFs() {
-      if (!navigator.onLine) return;
-      const queuedPDFs = await db.pdfQueue.toArray();
-      for (let pdfRecord of queuedPDFs) {
-        if(pdfRecord.target === "schedule3"){
-          try{
-            await uploadSinglePDFSchedule3(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
-            await db.pdfQueue.delete(pdfRecord.id);
-            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Schedule 3 Customers.`);
-          } catch(err){ console.error("Retry PDF upload failed:", err); }
-        }
-      }
-    }
-    
-    /* VIEW RECORDS (Schedule 3) */
-    function viewSchedule3Records() {
-      document.getElementById("form-container").style.display = "none";
-      document.getElementById("change-dates-page").style.display = "none";
-      document.getElementById("record-container").style.display = "block";
-      loadAllRecordsSchedule3();
-    }
-    
-    async function loadAllRecordsSchedule3() {
-      const recordList = document.getElementById("record-list");
-      recordList.innerHTML = "";
-      const storageRef = storage.ref("Agora schedule 3 Customers");
-      try {
-        const folderSnapshot = await storageRef.listAll();
-        if (folderSnapshot.prefixes.length > 0) {
-          folderSnapshot.prefixes.forEach(folderRef => {
-            const dairyNumber = folderRef.name;
-            const link = document.createElement("a");
-            link.textContent = dairyNumber;
-            link.href = "#";
-            link.style.display = "block";
-            link.addEventListener("click", () => loadRecordFilesSchedule3(dairyNumber));
-            recordList.appendChild(link);
-          });
-        }
-        if (folderSnapshot.items.length > 0) {
-          folderSnapshot.items.forEach(fileRef => {
-            const fileName = fileRef.name;
-            const link = document.createElement("a");
-            link.textContent = fileName;
-            link.href = "#";
-            link.style.display = "block";
-            link.addEventListener("click", async () => {
-              try {
-                const url = await fileRef.getDownloadURL();
-                window.open(url, "_blank");
-              } catch (err) {
-                console.error("Error fetching file:", err);
-              }
-            });
-            recordList.appendChild(link);
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching records:", error);
-      }
-    }
-    
-    async function loadRecordFilesSchedule3(dairyNumber) {
-      const recordList = document.getElementById("record-list");
-      recordList.innerHTML = "";
-      const folderRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}`);
-      try {
-        const fileSnapshot = await folderRef.listAll();
-        fileSnapshot.items.forEach(fileRef => {
-          const fileName = fileRef.name;
-          const link = document.createElement("a");
-          link.textContent = fileName;
-          link.href = "#";
-          link.style.display = "block";
-          link.addEventListener("click", async () => {
-            try {
-              const url = await fileRef.getDownloadURL();
-              window.open(url, "_blank");
-            } catch (err) {
-              console.error("Error fetching file:", err);
-            }
-          });
-          recordList.appendChild(link);
-        });
-        const backBtn = document.createElement("button");
-        backBtn.textContent = "Back to Records";
-        backBtn.className = "back-button";
-        backBtn.addEventListener("click", loadAllRecordsSchedule3);
-        recordList.appendChild(backBtn);
-      } catch (err) {
-        console.error("Error fetching record files:", err);
-      }
-    }
-    
-    function filterRecordsSchedule3() {
-      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
-      const recordList = document.getElementById("record-list");
-      const links = recordList.getElementsByTagName("a");
-      for (let i = 0; i < links.length; i++) {
-        const txt = links[i].textContent || links[i].innerText;
-        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
-      }
-    }
-    
-    function goBackSchedule3() {
-      document.getElementById("record-container").style.display = "none";
-      document.getElementById("form-container").style.display = "block";
-    }
-    
-    /* CHANGE DATES VIEW (Schedule 3) */
+
+    // Function to Open Change Dates Screen
     function changeSchedule3Dates() {
       document.getElementById("form-container").style.display = "none";
-      document.getElementById("record-container").style.display = "none";
-      document.getElementById("change-dates-page").style.display = "block";
-      loadSchedule3Dates();
+      document.getElementById("change-dates-container").style.display = "block";
+      loadSchedule3Farms();
     }
-    
-    async function loadSchedule3Dates() {
-      const datesList = document.getElementById("dates-list");
-      datesList.innerHTML = "";
-      // Create a reference to the folder (no trailing slash required)
+
+    // Function to Load All Farms with Schedule 3 Details
+    async function loadSchedule3Farms() {
+      const farmsList = document.getElementById("farms-list");
+      farmsList.innerHTML = "<p>Loading farm details...</p>";
+
       const folderRef = storage.ref("Agora schedule 3 farm details");
       try {
         const snapshot = await folderRef.listAll();
-        console.log("Found", snapshot.items.length, "file(s) in Agora schedule 3 farm details.");
+        farmsList.innerHTML = "";
         if (snapshot.items.length > 0) {
           for (const fileRef of snapshot.items) {
             try {
-              console.log("Processing file:", fileRef.name);
               const url = await fileRef.getDownloadURL();
-              console.log("File URL:", url);
               const res = await fetch(url);
               const data = await res.json();
-              const fileName = fileRef.name;
-              // Use dairyNumber field if available; otherwise, derive from file name
-              const dairyNumber = data.dairyNumber || fileName.replace(".json", "");
-              const div = document.createElement("div");
-              div.style.border = "1px solid #ccc";
-              div.style.padding = "10px";
-              div.style.marginBottom = "10px";
-              let content = `<strong>${dairyNumber}</strong><br>Install Dates & Rubberware Sizes:<br>`;
-              if (data.checklistExtra) {
-                for (const key in data.checklistExtra) {
-                  const extra = data.checklistExtra[key];
-                  content += `<em>${key}:</em> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}<br>`;
-                }
-              }
-              div.innerHTML = content;
-              datesList.appendChild(div);
-            } catch(e) {
-              console.error("Error processing file", fileRef.name, ":", e);
+              createFarmBox(data, fileRef.name);
+            } catch (e) {
+              console.error("Error loading farm:", fileRef.name, e);
             }
           }
-          if (!datesList.hasChildNodes()) {
-            datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
-          }
         } else {
-          datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
+          farmsList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
         }
       } catch (error) {
         console.error("Error fetching Schedule 3 farm details:", error);
-        datesList.innerHTML = "<p>Error fetching Schedule 3 farm details.</p>";
+        farmsList.innerHTML = "<p>Error fetching Schedule 3 farm details.</p>";
       }
     }
-    
-    function backToSchedule3Form() {
-      document.getElementById("change-dates-page").style.display = "none";
+
+    // Function to Create Farm Box (Styled Like Pilot Checks)
+    function createFarmBox(data, fileName) {
+      const farmsList = document.getElementById("farms-list");
+
+      const farmBox = document.createElement("div");
+      farmBox.classList.add("farm-box");
+
+      farmBox.innerHTML = `
+        <h4>${data.farmName || "Unknown Farm"}</h4>
+        <p><strong>Dairy Number:</strong> ${fileName.replace(".json", "")}</p>
+        <p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>
+      `;
+
+      // Checklist Items Section
+      if (data.checklistExtra) {
+        for (const key in data.checklistExtra) {
+          const itemData = data.checklistExtra[key];
+
+          const itemDiv = document.createElement("div");
+          itemDiv.classList.add("checklist-item");
+
+          itemDiv.innerHTML = `
+            <strong>${key}</strong><br>
+            <label>Install Date:</label> 
+            <input type="date" class="form-control" value="${itemData.installDate || ""}" data-field="installDate" data-key="${key}" data-file="${fileName}">
+            <label>Replacement Due:</label> 
+            <input type="date" class="form-control" value="${itemData.replacementDue || ""}" data-field="replacementDue" data-key="${key}" data-file="${fileName}">
+            <label>Rubberware Size:</label> 
+            <input type="text" class="form-control" value="${itemData.rubberwareSize || ""}" data-field="rubberwareSize" data-key="${key}" data-file="${fileName}">
+          `;
+
+          farmBox.appendChild(itemDiv);
+        }
+      }
+
+      const saveButton = document.createElement("button");
+      saveButton.textContent = "Save Changes";
+      saveButton.onclick = () => saveFarmChanges(fileName);
+      farmBox.appendChild(saveButton);
+
+      farmsList.appendChild(farmBox);
+    }
+
+    // Function to Save Changes to Firebase
+    async function saveFarmChanges(fileName) {
+      const inputs = document.querySelectorAll(`[data-file='${fileName}']`);
+      let updatedData = {};
+
+      inputs.forEach(input => {
+        const key = input.dataset.key;
+        const field = input.dataset.field;
+        if (!updatedData[key]) updatedData[key] = {};
+        updatedData[key][field] = input.value;
+      });
+
+      // Fetch existing farm data
+      const fileRef = storage.ref(`Agora schedule 3 farm details/${fileName}`);
+      try {
+        const url = await fileRef.getDownloadURL();
+        const res = await fetch(url);
+        let farmData = await res.json();
+        farmData.checklistExtra = updatedData;
+        
+        // Upload updated data
+        const jsonBlob = new Blob([JSON.stringify(farmData)], { type: "application/json" });
+        await fileRef.put(jsonBlob);
+        alert("Changes saved successfully!");
+      } catch (error) {
+        console.error("Error saving changes:", error);
+        alert("Failed to save changes.");
+      }
+    }
+
+    // Function to Return to Form
+    function backToForm() {
+      document.getElementById("change-dates-container").style.display = "none";
       document.getElementById("form-container").style.display = "block";
     }
-    
-    document.addEventListener("DOMContentLoaded", async () => {
-      const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name"];
-      fieldsToAutoCap.forEach(autoCapitalizeInput);
-      await setupDairyCompanyDatalist();
-      createSchedule3ChecklistItems();
-      const form = document.getElementById("schedule3-form");
-      form.addEventListener("input", saveSchedule3FormData);
-      form.addEventListener("change", saveSchedule3FormData);
-      uploadPendingPDFs();
-    });
   </script>
 </body>
 </html>
