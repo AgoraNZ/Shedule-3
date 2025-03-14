@@ -25,10 +25,10 @@
     }
     .farm-box {
       border: 1px solid #ccc;
+      background: #f8f9fa;
       padding: 15px;
       margin-bottom: 15px;
       border-radius: 5px;
-      background: #f8f9fa;
     }
     .farm-box h4 {
       margin-bottom: 10px;
@@ -40,7 +40,7 @@
       font-weight: bold;
       display: block;
     }
-    .back-button {
+    .back-button, .save-btn {
       background: #002B5C;
       color: #fff;
       border: none;
@@ -51,26 +51,25 @@
     }
     .save-btn {
       background: #FFD700;
-      border: none;
-      padding: 5px 10px;
+      color: #000;
       margin-top: 10px;
-      cursor: pointer;
-      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <!-- Main Container: initially shows a button to load Change Dates -->
+  <!-- Main Container: Initially shows a button to launch Change Dates -->
   <div class="container" id="main-container">
     <h1>Agora Schedule 3</h1>
     <p>Click the button below to load the Schedule 3 farm details for editing.</p>
     <button class="save-btn" onclick="showChangeDates()">Change Dates</button>
   </div>
 
-  <!-- Change Dates Container: hidden by default -->
-  <div class="container" id="change-dates-container" style="display:none;">
+  <!-- Change Dates Container -->
+  <div class="container" id="change-dates-container" style="display: none;">
     <h2>Schedule 3 Farm Details</h2>
-    <div id="farms-container"></div>
+    <div id="farms-container">
+      <p>Loading farm details...</p>
+    </div>
     <button class="back-button" onclick="backToMain()">Back to Main</button>
   </div>
 
@@ -78,7 +77,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Firebase initialization (update apiKey etc. as needed)
+    // Initialize Firebase (ensure your apiKey and other config values are correct)
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -90,45 +89,43 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // Show Change Dates screen and load all farm data from the folder.
+    // Show Change Dates screen and load farms.
     function showChangeDates() {
       document.getElementById("main-container").style.display = "none";
       document.getElementById("change-dates-container").style.display = "block";
       loadFarms();
     }
-
-    // Return to main container.
+    
     function backToMain() {
       document.getElementById("change-dates-container").style.display = "none";
       document.getElementById("main-container").style.display = "block";
     }
-
-    // Load all JSON files from the specified folder.
+    
+    // Load all JSON files from the folder "Agora schedule 3 farm details"
     async function loadFarms() {
       const farmsContainer = document.getElementById("farms-container");
       farmsContainer.innerHTML = "<p>Loading farm details...</p>";
-      // Reference the folder exactly as it is in Firebase Storage.
       const folderRef = storage.ref("Agora schedule 3 farm details");
       try {
         const snapshot = await folderRef.listAll();
-        console.log("Found", snapshot.items.length, "file(s) in the folder.");
+        console.log("Found", snapshot.items.length, "file(s) in 'Agora schedule 3 farm details'.");
         farmsContainer.innerHTML = "";
         if (snapshot.items.length === 0) {
           farmsContainer.innerHTML = "<p>No farm details found.</p>";
           return;
         }
-        // Process each file sequentially.
         for (const fileRef of snapshot.items) {
           try {
             console.log("Processing file:", fileRef.name);
             const url = await fileRef.getDownloadURL();
+            console.log("File URL:", url);
             const response = await fetch(url);
             const data = await response.json();
-            // Use the dairyNumber field if available; if not, derive from file name (strip ".json")
-            const dairyNum = data.dairyNumber || fileRef.name.replace(".json", "");
-            createFarmBox(dairyNum, data, fileRef.name);
+            // Use dairyNumber from JSON if exists; else use file name (strip .json)
+            const dairyID = data.dairyNumber || fileRef.name.replace(".json", "");
+            createFarmBox(dairyID, data, fileRef.name);
           } catch (e) {
-            console.error("Error processing file:", fileRef.name, e);
+            console.error("Error processing file " + fileRef.name + ":", e);
           }
         }
       } catch (error) {
@@ -136,20 +133,19 @@
         farmsContainer.innerHTML = "<p>Error loading farm details.</p>";
       }
     }
-
-    // Create and append a farm box for a given file.
-    function createFarmBox(dairyNum, data, fileName) {
+    
+    // Create a farm box element for each JSON file.
+    function createFarmBox(dairyID, data, fileName) {
       const farmsContainer = document.getElementById("farms-container");
       const box = document.createElement("div");
       box.className = "farm-box";
+      // Header info
+      let headerHTML = `<h4>${data.farmName || "Farm " + dairyID}</h4>`;
+      headerHTML += `<p><strong>Dairy Number:</strong> ${dairyID}</p>`;
+      headerHTML += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
+      box.innerHTML = headerHTML;
       
-      // Header showing farm name (if available) and dairy number.
-      let header = `<h4>${data.farmName || "Farm " + dairyNum}</h4>`;
-      header += `<p><strong>Dairy Number:</strong> ${dairyNum}</p>`;
-      header += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
-      box.innerHTML = header;
-      
-      // If checklistExtra exists, list each checklist item with three editable fields.
+      // If checklistExtra exists, create an editable section for each checklist item.
       if (data.checklistExtra) {
         for (const key in data.checklistExtra) {
           const extra = data.checklistExtra[key];
@@ -183,10 +179,10 @@
       
       farmsContainer.appendChild(box);
     }
-
-    // Save the changes for a given farm (identified by the file name).
+    
+    // Save changes for a given farm (by file name).
     async function saveFarmBox(fileName) {
-      // Find all input fields belonging to this file (using data-file attribute).
+      // Gather all input fields belonging to this file.
       const inputs = document.querySelectorAll(`[data-file="${fileName}"]`);
       let updatedExtra = {};
       inputs.forEach(input => {
@@ -197,19 +193,15 @@
         }
         updatedExtra[key][field] = input.value;
       });
-      console.log("Saving changes for file", fileName, updatedExtra);
-
-      // Get a reference to the JSON file.
+      console.log("Saving changes for", fileName, updatedExtra);
+      
       const fileRef = storage.ref("Agora schedule 3 farm details/" + fileName);
       try {
-        // Fetch the existing data
         const url = await fileRef.getDownloadURL();
-        const res = await fetch(url);
-        const data = await res.json();
-        // Overwrite the checklistExtra portion with our updated values.
-        data.checklistExtra = updatedExtra;
-        // Create a new Blob and upload it to the same location.
-        const newBlob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        const response = await fetch(url);
+        let farmData = await response.json();
+        farmData.checklistExtra = updatedExtra;
+        const newBlob = new Blob([JSON.stringify(farmData)], { type: "application/json" });
         await fileRef.put(newBlob);
         alert("Changes saved successfully for dairy " + fileName.replace(".json", ""));
       } catch (error) {
