@@ -183,7 +183,7 @@
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
       });
     }
-    // Enable autocorrect on every text input – attribute also set in HTML.
+    // Enable autocorrect on every text input – attribute is also set in HTML.
     function autoCapitalizeInput(id) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -763,14 +763,13 @@
       try {
         const folderSnapshot = await storageRef.listAll();
         if (folderSnapshot.items.length > 0) {
-          for (let fileRef of folderSnapshot.items) {
+          folderSnapshot.items.forEach(async fileRef => {
             try {
               const url = await fileRef.getDownloadURL();
               const res = await fetch(url);
               const data = await res.json();
-              // If dairyNumber is not present in the file, use the file name (minus extension)
               const fileName = fileRef.name;
-              const dairyNumber = data.dairyNumber || fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+              const dairyNumber = data.dairyNumber || fileName.substring(0, fileName.lastIndexOf('.'));
               const div = document.createElement("div");
               div.style.border = "1px solid #ccc";
               div.style.padding = "10px";
@@ -785,17 +784,20 @@
               }
               datesList.appendChild(div);
             } catch(e) {
-              console.error("Error loading farm details:", e);
+              console.error("Error loading farm details for a file:", e);
             }
-          }
-          if(datesList.innerHTML === ""){
-            datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
-          }
+          });
+          setTimeout(() => {
+            if (!datesList.hasChildNodes()) {
+              datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
+            }
+          }, 1000);
         } else {
           datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
         }
       } catch (error) {
         console.error("Error fetching schedule 3 farm details:", error);
+        datesList.innerHTML = "<p>Error fetching Schedule 3 farm details.</p>";
       }
     }
     
