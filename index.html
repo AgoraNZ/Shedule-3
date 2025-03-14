@@ -26,9 +26,7 @@
       max-width: 800px;
       width: 100%;
     }
-    .record-container, .change-dates-container {
-      background-color: #fff;
-    }
+    .record-container, .change-dates-container { background-color: #fff; }
     h1, h2, h3, h4 { text-align: center; }
     h1, h2 { color: #333; }
     h3 { color: #002B5C; margin-top: 20px; }
@@ -628,7 +626,6 @@
         
         (async function(){
           const pdfBlob = pdf.output("blob");
-          // Use visit date as file name if available
           const visitDate = fd.get("visit-date");
           let fileName = "";
           if(visitDate) {
@@ -780,17 +777,21 @@
     async function loadSchedule3Dates() {
       const datesList = document.getElementById("dates-list");
       datesList.innerHTML = "";
-      const storageRef = storage.ref("Agora schedule 3 farm details");
+      // Note the trailing slash in the reference
+      const storageRef = storage.ref("Agora schedule 3 farm details/");
       try {
         const folderSnapshot = await storageRef.listAll();
+        console.log("Found", folderSnapshot.items.length, "file(s) in the farm details folder.");
         if (folderSnapshot.items.length > 0) {
           for (const fileRef of folderSnapshot.items) {
             try {
+              console.log("Processing file:", fileRef.name);
               const url = await fileRef.getDownloadURL();
+              console.log("File URL:", url);
               const res = await fetch(url);
               const data = await res.json();
               const fileName = fileRef.name;
-              // Use the dairyNumber field if available; otherwise, derive from the file name (removing .json)
+              // Use dairyNumber from data if present; otherwise, use file name without .json
               const dairyNumber = data.dairyNumber || fileName.substring(0, fileName.lastIndexOf('.'));
               const div = document.createElement("div");
               div.style.border = "1px solid #ccc";
