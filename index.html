@@ -607,7 +607,7 @@
         
         (async function(){
           const pdfBlob = pdf.output("blob");
-          // Use visit date as the file name (if provided; otherwise fall back)
+          // Use visit date as the file name if provided
           const visitDate = fd.get("visit-date");
           let fileName = "";
           if(visitDate) {
@@ -768,7 +768,9 @@
               const url = await fileRef.getDownloadURL();
               const res = await fetch(url);
               const data = await res.json();
-              const dairyNumber = data.dairyNumber || fileRef.name.split(".")[0];
+              // If dairyNumber is not present in the file, use the file name (minus extension)
+              const fileName = fileRef.name;
+              const dairyNumber = data.dairyNumber || fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
               const div = document.createElement("div");
               div.style.border = "1px solid #ccc";
               div.style.padding = "10px";
