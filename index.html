@@ -76,22 +76,27 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Logo remains the same -->
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
+    <!-- Logo -->
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
+         alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Schedule 3</h1>
     <form id="schedule3-form">
-      <!-- Farm Details Section (with autocorrect enabled) -->
+      <!-- Farm Details Section -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" 
+               onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
-        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" 
+               list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
         <datalist id="dairy-company-list"></datalist>
         <label for="address">Address:</label>
-        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="address" name="address" 
+               autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="customer-name">Customer Name:</label>
-        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="customer-name" name="customer-name" 
+               autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="region">Region:</label>
         <select id="region" name="region" class="form-select">
           <option value="northland">Northland</option>
@@ -111,7 +116,8 @@
           <option value="southland">Southland</option>
         </select>
         <label for="farm-name">Farm Name:</label>
-        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="farm-name" name="farm-name" 
+               autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="island">Island:</label>
         <select id="island" name="island" class="form-select">
           <option value="north-island">North Island</option>
@@ -141,7 +147,8 @@
   <div id="record-container" class="record-container" style="display: none;">
     <h2>All Schedule 3 Records</h2>
     <div class="search-container">
-      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecordsSchedule3()">
+      <input type="text" id="search-dairy-number" class="form-control" 
+             placeholder="Search by Dairy Number" oninput="filterRecordsSchedule3()">
     </div>
     <div id="record-list" class="record-list"></div>
     <button class="back-button" onclick="goBackSchedule3()">Back to Form</button>
@@ -162,7 +169,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    /* FIREBASE & DEXIE INIT */
+    /* Firebase & Dexie Initialization */
     const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
@@ -208,7 +215,11 @@
       ];
       const userCompanies = await db.dairyCompanies.toArray();
       const allCompanies = [...defaultCompanies];
-      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
+      userCompanies.forEach(u => { 
+        if (!allCompanies.includes(u.name)) { 
+          allCompanies.push(u.name); 
+        }
+      });
       const datalist = document.getElementById('dairy-company-list');
       datalist.innerHTML = "";
       allCompanies.forEach(c => { 
@@ -230,7 +241,7 @@
       });
     }
     
-    /* Farm details: saving to Agora schedule 3 farm details */
+    /* Farm Details – Save to “Agora schedule 3 farm details” */
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
@@ -295,7 +306,7 @@
       await checkOrCreateFormRecord();
     }
     
-    /* Create Schedule 3 Checklist Items with extra fields */
+    /* Schedule 3 Checklist Items with Extra Fields */
     let schedule3ChecklistItemsData = {};
     function createSchedule3ChecklistItems() {
       const checklistItems = [
@@ -420,14 +431,14 @@
           const installInput = itemContainer.querySelector(`input[name="install-${key}"]`);
           const replaceInput = itemContainer.querySelector(`input[name="replacement-${key}"]`);
           const rubberInput = itemContainer.querySelector(`input[name="rubber-${key}"]`);
-          if(installInput) installInput.value = extra.installDate || "";
-          if(replaceInput) replaceInput.value = extra.replacementDue || "";
-          if(rubberInput) rubberInput.value = extra.rubberwareSize || "";
+          if (installInput) installInput.value = extra.installDate || "";
+          if (replaceInput) replaceInput.value = extra.replacementDue || "";
+          if (rubberInput) rubberInput.value = extra.rubberwareSize || "";
         }
       });
     }
     
-    /* LOAD, CLEAR & SAVE Data for Schedule 3 */
+    /* Clear & Save Schedule 3 Form Data */
     function clearSchedule3Form() {
       document.getElementById("schedule3-form").reset();
       const imageUploads = document.querySelectorAll(".image-upload");
@@ -617,6 +628,7 @@
         
         (async function(){
           const pdfBlob = pdf.output("blob");
+          // Use visit date as file name if available
           const visitDate = fd.get("visit-date");
           let fileName = "";
           if(visitDate) {
@@ -778,6 +790,7 @@
               const res = await fetch(url);
               const data = await res.json();
               const fileName = fileRef.name;
+              // Use the dairyNumber field if available; otherwise, derive from the file name (removing .json)
               const dairyNumber = data.dairyNumber || fileName.substring(0, fileName.lastIndexOf('.'));
               const div = document.createElement("div");
               div.style.border = "1px solid #ccc";
@@ -793,7 +806,7 @@
               }
               datesList.appendChild(div);
             } catch(e) {
-              console.error("Error loading farm details for a file:", e);
+              console.error("Error loading farm details for file:", e);
             }
           }
           if (!datesList.hasChildNodes()) {
@@ -803,7 +816,7 @@
           datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
         }
       } catch (error) {
-        console.error("Error fetching schedule 3 farm details:", error);
+        console.error("Error fetching Schedule 3 farm details:", error);
         datesList.innerHTML = "<p>Error fetching Schedule 3 farm details.</p>";
       }
     }
