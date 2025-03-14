@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agora-app-cache-v3';
+const CACHE_NAME = 'agora-app-cache-v4';
 const urlsToCache = [
   '/', // Adjust if your entry point is not at the root.
   '/index.html',
