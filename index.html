@@ -1,3 +1,11 @@
+["49.json", "50.json", "51.json"]
+```) that hold your farm details. The Change Dates function will load that manifest and then, for each file name in the list, fetch its data and display the extra details.
+
+Make sure you create and update the manifest file whenever you add a new farm details JSON file. Then use the complete HTML code below:
+
+---
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,7 +34,9 @@
       max-width: 800px;
       width: 100%;
     }
-    .record-container, .change-dates-container { background-color: #fff; }
+    .record-container, .change-dates-container {
+      background-color: #fff;
+    }
     h1, h2, h3, h4 { text-align: center; }
     h1, h2 { color: #333; }
     h3 { color: #002B5C; margin-top: 20px; }
@@ -766,8 +776,8 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    /* CHANGE DATES VIEW (Schedule 3) */
-    function changeSchedule3Dates() {
+    /* NEW Change Dates Feature Using a Manifest File */
+    async function changeSchedule3Dates() {
       document.getElementById("form-container").style.display = "none";
       document.getElementById("record-container").style.display = "none";
       document.getElementById("change-dates-page").style.display = "block";
@@ -777,48 +787,50 @@
     async function loadSchedule3Dates() {
       const datesList = document.getElementById("dates-list");
       datesList.innerHTML = "";
-      // Note the trailing slash in the reference
-      const storageRef = storage.ref("Agora schedule 3 farm details/");
+      // We assume a manifest.json file exists in the farm details folder that lists all JSON file names.
+      const manifestRef = storage.ref("Agora schedule 3 farm details/manifest.json");
       try {
-        const folderSnapshot = await storageRef.listAll();
-        console.log("Found", folderSnapshot.items.length, "file(s) in the farm details folder.");
-        if (folderSnapshot.items.length > 0) {
-          for (const fileRef of folderSnapshot.items) {
-            try {
-              console.log("Processing file:", fileRef.name);
-              const url = await fileRef.getDownloadURL();
-              console.log("File URL:", url);
-              const res = await fetch(url);
-              const data = await res.json();
-              const fileName = fileRef.name;
-              // Use dairyNumber from data if present; otherwise, use file name without .json
-              const dairyNumber = data.dairyNumber || fileName.substring(0, fileName.lastIndexOf('.'));
-              const div = document.createElement("div");
-              div.style.border = "1px solid #ccc";
-              div.style.padding = "10px";
-              div.style.marginBottom = "10px";
-              div.innerHTML = `<strong>${dairyNumber}</strong><br>
-                Install Dates & Rubberware Sizes:<br>`;
-              if (data.checklistExtra) {
-                for (let key in data.checklistExtra) {
-                  const extra = data.checklistExtra[key];
-                  div.innerHTML += `<em>${key}:</em> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}<br>`;
-                }
+        const manifestURL = await manifestRef.getDownloadURL();
+        console.log("Manifest URL:", manifestURL);
+        const manifestResponse = await fetch(manifestURL);
+        const manifestData = await manifestResponse.json(); // Expecting an array of file names
+        console.log("Manifest Data:", manifestData);
+        if (!Array.isArray(manifestData) || manifestData.length === 0) {
+          datesList.innerHTML = "<p>No Schedule 3 farm details found in manifest.</p>";
+          return;
+        }
+        // Process each file in the manifest sequentially
+        for (const fileName of manifestData) {
+          try {
+            const fileRef = storage.ref(`Agora schedule 3 farm details/${fileName}`);
+            const url = await fileRef.getDownloadURL();
+            console.log("Processing file:", fileName, "URL:", url);
+            const res = await fetch(url);
+            const data = await res.json();
+            const dairyNumber = data.dairyNumber || fileName.replace(".json", "");
+            const div = document.createElement("div");
+            div.style.border = "1px solid #ccc";
+            div.style.padding = "10px";
+            div.style.marginBottom = "10px";
+            div.innerHTML = `<strong>${dairyNumber}</strong><br>
+              Install Dates & Rubberware Sizes:<br>`;
+            if (data.checklistExtra) {
+              for (const key in data.checklistExtra) {
+                const extra = data.checklistExtra[key];
+                div.innerHTML += `<em>${key}:</em> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}<br>`;
               }
-              datesList.appendChild(div);
-            } catch(e) {
-              console.error("Error loading farm details for file:", e);
             }
+            datesList.appendChild(div);
+          } catch(e) {
+            console.error("Error loading file", fileName, ":", e);
           }
-          if (!datesList.hasChildNodes()) {
-            datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
-          }
-        } else {
+        }
+        if (!datesList.hasChildNodes()) {
           datesList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
         }
       } catch (error) {
-        console.error("Error fetching Schedule 3 farm details:", error);
-        datesList.innerHTML = "<p>Error fetching Schedule 3 farm details.</p>";
+        console.error("Error loading manifest file:", error);
+        datesList.innerHTML = "<p>Error fetching Schedule 3 farm details manifest.</p>";
       }
     }
     
