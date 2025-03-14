@@ -1,74 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- META & STYLES -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agora Schedule 3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agora Schedule 3 – Change Dates</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
     body {
-      background-color: #d2d7dd;
+      background: #d2d7dd;
       font-family: Arial, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
-      margin: 0;
     }
-    .container, .change-dates-container {
-      background-color: #fff;
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      max-width: 800px;
-      width: 100%;
     }
-    h1, h2, h3 { text-align: center; }
-    button {
-      background-color: #FFD700;
-      border: none;
-      padding: 10px 20px;
-      cursor: pointer;
-      margin: 10px 5px;
-      border-radius: 5px;
-    }
-    .back-button { background-color: #002B5C; color: #fff; }
-    .change-dates-container {
-      display: none;
-      padding: 20px;
+    h1, h2 {
+      text-align: center;
+      color: #002B5C;
     }
     .farm-box {
-      background: #f8f9fa;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
       padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      background: #f8f9fa;
+    }
+    .farm-box h4 {
       margin-bottom: 10px;
+    }
+    .check-item {
+      margin-bottom: 10px;
+    }
+    .check-item label {
+      font-weight: bold;
+      display: block;
+    }
+    .back-button {
+      background: #002B5C;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 20px;
+      cursor: pointer;
       border-radius: 5px;
     }
-    .farm-box h4 { margin-bottom: 10px; }
-    .checklist-item { margin-bottom: 15px; }
+    .save-btn {
+      background: #FFD700;
+      border: none;
+      padding: 5px 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
-
-  <!-- MAIN FORM -->
-  <div class="container" id="form-container">
+  <!-- Main Container: initially shows a button to load Change Dates -->
+  <div class="container" id="main-container">
     <h1>Agora Schedule 3</h1>
-    <button onclick="changeSchedule3Dates()">Change Dates</button>
+    <p>Click the button below to load the Schedule 3 farm details for editing.</p>
+    <button class="save-btn" onclick="showChangeDates()">Change Dates</button>
   </div>
 
-  <!-- CHANGE DATES FEATURE (Like Pilot Checks) -->
-  <div id="change-dates-container" class="change-dates-container">
+  <!-- Change Dates Container: hidden by default -->
+  <div class="container" id="change-dates-container" style="display:none;">
     <h2>Schedule 3 Farm Details</h2>
-    <div id="farms-list"></div>
-    <button class="back-button" onclick="backToForm()">Back to Form</button>
+    <div id="farms-container"></div>
+    <button class="back-button" onclick="backToMain()">Back to Main</button>
   </div>
 
+  <!-- Firebase and App Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Firebase Initialization
+    // Firebase initialization (update apiKey etc. as needed)
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -80,119 +90,132 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // Function to Open Change Dates Screen
-    function changeSchedule3Dates() {
-      document.getElementById("form-container").style.display = "none";
+    // Show Change Dates screen and load all farm data from the folder.
+    function showChangeDates() {
+      document.getElementById("main-container").style.display = "none";
       document.getElementById("change-dates-container").style.display = "block";
-      loadSchedule3Farms();
+      loadFarms();
     }
 
-    // Function to Load All Farms with Schedule 3 Details
-    async function loadSchedule3Farms() {
-      const farmsList = document.getElementById("farms-list");
-      farmsList.innerHTML = "<p>Loading farm details...</p>";
+    // Return to main container.
+    function backToMain() {
+      document.getElementById("change-dates-container").style.display = "none";
+      document.getElementById("main-container").style.display = "block";
+    }
 
+    // Load all JSON files from the specified folder.
+    async function loadFarms() {
+      const farmsContainer = document.getElementById("farms-container");
+      farmsContainer.innerHTML = "<p>Loading farm details...</p>";
+      // Reference the folder exactly as it is in Firebase Storage.
       const folderRef = storage.ref("Agora schedule 3 farm details");
       try {
         const snapshot = await folderRef.listAll();
-        farmsList.innerHTML = "";
-        if (snapshot.items.length > 0) {
-          for (const fileRef of snapshot.items) {
-            try {
-              const url = await fileRef.getDownloadURL();
-              const res = await fetch(url);
-              const data = await res.json();
-              createFarmBox(data, fileRef.name);
-            } catch (e) {
-              console.error("Error loading farm:", fileRef.name, e);
-            }
+        console.log("Found", snapshot.items.length, "file(s) in the folder.");
+        farmsContainer.innerHTML = "";
+        if (snapshot.items.length === 0) {
+          farmsContainer.innerHTML = "<p>No farm details found.</p>";
+          return;
+        }
+        // Process each file sequentially.
+        for (const fileRef of snapshot.items) {
+          try {
+            console.log("Processing file:", fileRef.name);
+            const url = await fileRef.getDownloadURL();
+            const response = await fetch(url);
+            const data = await response.json();
+            // Use the dairyNumber field if available; if not, derive from file name (strip ".json")
+            const dairyNum = data.dairyNumber || fileRef.name.replace(".json", "");
+            createFarmBox(dairyNum, data, fileRef.name);
+          } catch (e) {
+            console.error("Error processing file:", fileRef.name, e);
           }
-        } else {
-          farmsList.innerHTML = "<p>No Schedule 3 farm details found.</p>";
         }
       } catch (error) {
-        console.error("Error fetching Schedule 3 farm details:", error);
-        farmsList.innerHTML = "<p>Error fetching Schedule 3 farm details.</p>";
+        console.error("Error listing files:", error);
+        farmsContainer.innerHTML = "<p>Error loading farm details.</p>";
       }
     }
 
-    // Function to Create Farm Box (Styled Like Pilot Checks)
-    function createFarmBox(data, fileName) {
-      const farmsList = document.getElementById("farms-list");
-
-      const farmBox = document.createElement("div");
-      farmBox.classList.add("farm-box");
-
-      farmBox.innerHTML = `
-        <h4>${data.farmName || "Unknown Farm"}</h4>
-        <p><strong>Dairy Number:</strong> ${fileName.replace(".json", "")}</p>
-        <p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>
-      `;
-
-      // Checklist Items Section
+    // Create and append a farm box for a given file.
+    function createFarmBox(dairyNum, data, fileName) {
+      const farmsContainer = document.getElementById("farms-container");
+      const box = document.createElement("div");
+      box.className = "farm-box";
+      
+      // Header showing farm name (if available) and dairy number.
+      let header = `<h4>${data.farmName || "Farm " + dairyNum}</h4>`;
+      header += `<p><strong>Dairy Number:</strong> ${dairyNum}</p>`;
+      header += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
+      box.innerHTML = header;
+      
+      // If checklistExtra exists, list each checklist item with three editable fields.
       if (data.checklistExtra) {
         for (const key in data.checklistExtra) {
-          const itemData = data.checklistExtra[key];
-
+          const extra = data.checklistExtra[key];
           const itemDiv = document.createElement("div");
-          itemDiv.classList.add("checklist-item");
-
+          itemDiv.className = "check-item";
           itemDiv.innerHTML = `
-            <strong>${key}</strong><br>
-            <label>Install Date:</label> 
-            <input type="date" class="form-control" value="${itemData.installDate || ""}" data-field="installDate" data-key="${key}" data-file="${fileName}">
-            <label>Replacement Due:</label> 
-            <input type="date" class="form-control" value="${itemData.replacementDue || ""}" data-field="replacementDue" data-key="${key}" data-file="${fileName}">
-            <label>Rubberware Size:</label> 
-            <input type="text" class="form-control" value="${itemData.rubberwareSize || ""}" data-field="rubberwareSize" data-key="${key}" data-file="${fileName}">
+            <label>${key}</label>
+            <div class="mb-2">
+              <span>Install Date:</span>
+              <input type="date" class="form-control" data-key="${key}" data-field="installDate" data-file="${fileName}" value="${extra.installDate || ""}">
+            </div>
+            <div class="mb-2">
+              <span>Replacement Due:</span>
+              <input type="date" class="form-control" data-key="${key}" data-field="replacementDue" data-file="${fileName}" value="${extra.replacementDue || ""}">
+            </div>
+            <div class="mb-2">
+              <span>Rubberware Size:</span>
+              <input type="text" class="form-control" data-key="${key}" data-field="rubberwareSize" data-file="${fileName}" value="${extra.rubberwareSize || ""}">
+            </div>
           `;
-
-          farmBox.appendChild(itemDiv);
+          box.appendChild(itemDiv);
         }
       }
-
-      const saveButton = document.createElement("button");
-      saveButton.textContent = "Save Changes";
-      saveButton.onclick = () => saveFarmChanges(fileName);
-      farmBox.appendChild(saveButton);
-
-      farmsList.appendChild(farmBox);
+      
+      // Save Changes button for this farm.
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "save-btn";
+      saveBtn.textContent = "Save Changes";
+      saveBtn.onclick = function() { saveFarmBox(fileName); };
+      box.appendChild(saveBtn);
+      
+      farmsContainer.appendChild(box);
     }
 
-    // Function to Save Changes to Firebase
-    async function saveFarmChanges(fileName) {
-      const inputs = document.querySelectorAll(`[data-file='${fileName}']`);
-      let updatedData = {};
-
+    // Save the changes for a given farm (identified by the file name).
+    async function saveFarmBox(fileName) {
+      // Find all input fields belonging to this file (using data-file attribute).
+      const inputs = document.querySelectorAll(`[data-file="${fileName}"]`);
+      let updatedExtra = {};
       inputs.forEach(input => {
         const key = input.dataset.key;
         const field = input.dataset.field;
-        if (!updatedData[key]) updatedData[key] = {};
-        updatedData[key][field] = input.value;
+        if (!updatedExtra[key]) {
+          updatedExtra[key] = {};
+        }
+        updatedExtra[key][field] = input.value;
       });
+      console.log("Saving changes for file", fileName, updatedExtra);
 
-      // Fetch existing farm data
-      const fileRef = storage.ref(`Agora schedule 3 farm details/${fileName}`);
+      // Get a reference to the JSON file.
+      const fileRef = storage.ref("Agora schedule 3 farm details/" + fileName);
       try {
+        // Fetch the existing data
         const url = await fileRef.getDownloadURL();
         const res = await fetch(url);
-        let farmData = await res.json();
-        farmData.checklistExtra = updatedData;
-        
-        // Upload updated data
-        const jsonBlob = new Blob([JSON.stringify(farmData)], { type: "application/json" });
-        await fileRef.put(jsonBlob);
-        alert("Changes saved successfully!");
+        const data = await res.json();
+        // Overwrite the checklistExtra portion with our updated values.
+        data.checklistExtra = updatedExtra;
+        // Create a new Blob and upload it to the same location.
+        const newBlob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        await fileRef.put(newBlob);
+        alert("Changes saved successfully for dairy " + fileName.replace(".json", ""));
       } catch (error) {
-        console.error("Error saving changes:", error);
-        alert("Failed to save changes.");
+        console.error("Error saving changes for", fileName, error);
+        alert("Failed to save changes for dairy " + fileName.replace(".json", ""));
       }
-    }
-
-    // Function to Return to Form
-    function backToForm() {
-      document.getElementById("change-dates-container").style.display = "none";
-      document.getElementById("form-container").style.display = "block";
     }
   </script>
 </body>
