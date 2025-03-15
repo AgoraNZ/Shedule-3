@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agora Schedule 3 – Test 49.json</title>
+  <title>Test: Load 49.json Directly</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
     body {
@@ -23,89 +23,42 @@
       text-align: center;
       color: #002B5C;
     }
-    .farm-box {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 5px;
+    pre {
       background: #f8f9fa;
-    }
-    .back-button {
-      background: #002B5C;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      margin-top: 20px;
-      cursor: pointer;
+      padding: 10px;
       border-radius: 5px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
+      overflow-x: auto;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="change-dates-container">
-    <h1>Test: Load 49.json</h1>
-    <div id="farm-box">
-      <p>Loading test file 49.json...</p>
-    </div>
-    <button class="back-button" onclick="alert('Back pressed')">Back</button>
+  <div class="container">
+    <h1>Test: Load 49.json Directly</h1>
+    <p>This page directly fetches the file from Firebase Storage using its public URL.</p>
+    <button id="load-btn" class="btn btn-primary">Load 49.json</button>
+    <h2>File Contents</h2>
+    <pre id="output">Click the button above to load the file.</pre>
   </div>
 
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Initialize Firebase (use your exact configuration)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
-      authDomain: "dairy-farm-record-system.firebaseapp.com",
-      projectId: "dairy-farm-record-system",
-      storageBucket: "dairy-farm-record-system.appspot.com",
-      messagingSenderId: "422124188212",
-      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-
-    // Function to load the file "49.json" directly
-    async function loadTestFile() {
-      const farmBox = document.getElementById("farm-box");
-      farmBox.innerHTML = "<p>Loading test file 49.json...</p>";
-      // Direct reference to the file "49.json"
-      const fileRef = storage.ref("Agora schedule 3 farm details/49.json");
+    document.getElementById("load-btn").addEventListener("click", async () => {
+      const output = document.getElementById("output");
+      output.textContent = "Loading...";
+      // Use the exact URL you provided (adjust the token if necessary)
+      const fileURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20schedule%203%20farm%20details%2F49.json?alt=media&token=8e1a4ebf-153c-4662-b981-7d2e5f5a5bf4";
       try {
-        const url = await fileRef.getDownloadURL();
-        console.log("Test file URL:", url);
-        const response = await fetch(url);
-        const data = await response.json();
-        console.log("Data from 49.json:", data);
-        let html = `<div class="farm-box">`;
-        html += `<h2>${data.farmName || "Farm 49"}</h2>`;
-        html += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
-        html += `<p><strong>Address:</strong> ${data.address || "N/A"}</p>`;
-        html += `<p><strong>Customer Name:</strong> ${data.customerName || "N/A"}</p>`;
-        html += `<p><strong>Region:</strong> ${data.region || "N/A"}</p>`;
-        html += `<p><strong>Island:</strong> ${data.island || "N/A"}</p>`;
-        html += `<h4>Checklist Extra:</h4>`;
-        if(data.checklistExtra) {
-          for(const key in data.checklistExtra) {
-            const extra = data.checklistExtra[key];
-            html += `<p><strong>${key}:</strong> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}</p>`;
-          }
-        } else {
-          html += "<p>No extra details found.</p>";
+        const response = await fetch(fileURL);
+        if (!response.ok) {
+          throw new Error("HTTP error " + response.status);
         }
-        html += `</div>`;
-        farmBox.innerHTML = html;
+        const data = await response.json();
+        console.log("Loaded data:", data);
+        output.textContent = JSON.stringify(data, null, 2);
       } catch (error) {
-        console.error("Error loading test file:", error);
-        farmBox.innerHTML = `<p>Error loading test file: ${error.message}</p>`;
+        console.error("Error fetching file:", error);
+        output.textContent = "Error fetching file: " + error.message;
       }
-    }
-
-    loadTestFile();
+    });
   </script>
 </body>
 </html>
