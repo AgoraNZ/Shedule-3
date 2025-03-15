@@ -23,16 +23,13 @@
       text-align: center;
       color: #002B5C;
     }
-    .farm-details {
-      margin-top: 20px;
-    }
-    .farm-details p {
-      margin-bottom: 5px;
+    .detail-item {
+      margin-bottom: 8px;
     }
     .checklist-table {
       width: 100%;
-      margin-top: 15px;
       border-collapse: collapse;
+      margin-top: 15px;
     }
     .checklist-table th, .checklist-table td {
       border: 1px solid #ccc;
@@ -42,7 +39,7 @@
     .checklist-table th {
       background-color: #f0f0f0;
     }
-    .back-button, .load-btn {
+    .load-btn, .back-btn {
       background-color: #002B5C;
       color: #fff;
       border: none;
@@ -58,49 +55,48 @@
   </style>
 </head>
 <body>
-  <div class="container" id="main-container">
+  <div class="container" id="input-container">
     <h1>Agora Schedule 3 – Change Dates</h1>
     <p>Enter the Dairy Number (e.g. 49) to load its farm details.</p>
     <div class="mb-3">
       <label for="dairy-number" class="form-label">Dairy Number</label>
       <input type="text" class="form-control" id="dairy-number" placeholder="e.g. 49">
     </div>
-    <button class="load-btn" onclick="loadFarmDetailsSchedule3()">Load Farm Details</button>
-    
-    <!-- This section will display the farm details once loaded -->
-    <div id="farm-details" class="farm-details" style="display:none;">
-      <h2>Farm Details</h2>
-      <p><strong>Dairy Number:</strong> <span id="display-dairy-number"></span></p>
-      <p><strong>Dairy Company:</strong> <span id="display-dairy-company"></span></p>
-      <p><strong>Address:</strong> <span id="display-address"></span></p>
-      <p><strong>Customer Name:</strong> <span id="display-customer-name"></span></p>
-      <p><strong>Region:</strong> <span id="display-region"></span></p>
-      <p><strong>Farm Name:</strong> <span id="display-farm-name"></span></p>
-      <p><strong>Island:</strong> <span id="display-island"></span></p>
-      
-      <h3 class="mt-4">Checklist Extra Details</h3>
-      <table class="checklist-table">
-        <thead>
-          <tr>
-            <th>Checklist Item</th>
-            <th>Install Date</th>
-            <th>Replacement Due</th>
-            <th>Rubberware Size</th>
-          </tr>
-        </thead>
-        <tbody id="checklist-body">
-          <!-- Checklist extra details will be inserted here -->
-        </tbody>
-      </table>
-      <button class="back-button" onclick="backToInput()">Back</button>
-    </div>
+    <button class="load-btn" onclick="loadFarmDetails()">Load Farm Details</button>
   </div>
-  
+
+  <div class="container" id="details-container" style="display: none;">
+    <h2>Farm Details</h2>
+    <div class="detail-item"><strong>Dairy Number:</strong> <span id="display-dairy-number"></span></div>
+    <div class="detail-item"><strong>Dairy Company:</strong> <span id="display-dairy-company"></span></div>
+    <div class="detail-item"><strong>Address:</strong> <span id="display-address"></span></div>
+    <div class="detail-item"><strong>Customer Name:</strong> <span id="display-customer-name"></span></div>
+    <div class="detail-item"><strong>Region:</strong> <span id="display-region"></span></div>
+    <div class="detail-item"><strong>Farm Name:</strong> <span id="display-farm-name"></span></div>
+    <div class="detail-item"><strong>Island:</strong> <span id="display-island"></span></div>
+    
+    <h3 class="mt-4">Checklist Extra Details</h3>
+    <table class="checklist-table">
+      <thead>
+        <tr>
+          <th>Checklist Item</th>
+          <th>Install Date</th>
+          <th>Replacement Due</th>
+          <th>Rubberware Size</th>
+        </tr>
+      </thead>
+      <tbody id="checklist-body">
+        <!-- Data will be inserted here -->
+      </tbody>
+    </table>
+    <button class="back-btn" onclick="backToInput()">Back</button>
+  </div>
+
   <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Initialize Firebase – replace with your exact configuration
+    // Initialize Firebase (use your actual configuration)
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -112,14 +108,14 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // Load the farm details based on the dairy number entered
-    async function loadFarmDetailsSchedule3() {
+    // Load farm details for the given dairy number
+    async function loadFarmDetails() {
       const dairyNumber = document.getElementById("dairy-number").value.trim();
       if (!dairyNumber) {
         alert("Please enter a Dairy Number.");
         return;
       }
-      // Build the file path exactly as stored
+      // Build the reference using the exact folder name
       const filePath = `Agora schedule 3 farm details/${dairyNumber}.json`;
       const fileRef = storage.ref(filePath);
       try {
@@ -127,7 +123,7 @@
         console.log("Download URL:", url);
         const response = await fetch(url);
         if (!response.ok) {
-          throw new Error("Failed to fetch the farm details.");
+          throw new Error("Failed to fetch farm details.");
         }
         const data = await response.json();
         console.log("Farm Data:", data);
@@ -147,7 +143,7 @@
       document.getElementById("display-region").textContent = data.region || "N/A";
       document.getElementById("display-farm-name").textContent = data.farmName || "N/A";
       document.getElementById("display-island").textContent = data.island || "N/A";
-      
+
       const tbody = document.getElementById("checklist-body");
       tbody.innerHTML = "";
       if (data.checklistExtra) {
@@ -165,12 +161,14 @@
       } else {
         tbody.innerHTML = `<tr><td colspan="4">No checklist extra details found.</td></tr>`;
       }
-      document.getElementById("farm-details").style.display = "block";
+      document.getElementById("input-container").style.display = "none";
+      document.getElementById("details-container").style.display = "block";
     }
 
-    // Go back to input screen
+    // Go back to the input screen
     function backToInput() {
-      document.getElementById("farm-details").style.display = "none";
+      document.getElementById("details-container").style.display = "none";
+      document.getElementById("input-container").style.display = "block";
     }
   </script>
 </body>
