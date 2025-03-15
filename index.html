@@ -78,7 +78,7 @@
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <!-- On blur, the function now appends "schedule3" to the dairy number -->
+        <!-- When blurred, we append "schedule3" to the dairy number -->
         <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
         <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
@@ -149,7 +149,7 @@
     <button class="back-button" onclick="backToForm()">Back to Form</button>
   </div>
   
-  <!-- SCRIPTS: Firebase, Dexie, jsPDF & jsPDF-AutoTable libraries -->
+  <!-- SCRIPTS: Firebase, Dexie, jsPDF & AutoTable libraries -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
@@ -170,7 +170,7 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const firestore = firebase.firestore();
-    // Dexie database to store form data and dairy companies locally
+    // Use Dexie to store forms and dairy companies locally
     const db = new Dexie("OfflineData");
     db.version(5).stores({
       forms: "dairyNumber",
@@ -229,11 +229,11 @@
       });
     }
     
-    // Use the dairy number with the suffix "schedule3"
+    // When a dairy number is entered, append "schedule3" and fetch the JSON file
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
-      const key = dairyNumber + "schedule3";
+      const key = dairyNumber + "schedule3";  // Append suffix to match your file name
       const storageRef = storage.ref(`Agora Farm Details/${key}.json`);
       try {
         const url = await storageRef.getDownloadURL();
@@ -247,9 +247,7 @@
           document.getElementById('region').value = data.region || '';
           document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
           document.getElementById('island').value = data.island || '';
-          if(data.visitDate) {
-            document.getElementById('visit-date').value = data.visitDate;
-          }
+          document.getElementById('visit-date').value = data.visitDate || '';
         }
       } catch (error) {
         console.error('Error in fetchFarmDetails:', error);
@@ -312,7 +310,7 @@
         commentsInput.setAttribute("spellcheck", "true");
         commentsInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(commentsInput);
-        // Add file inputs (hidden unless attention-required is selected)
+        // Add file inputs and preview images (initially hidden)
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -364,7 +362,7 @@
         rubberwareDiv.appendChild(qtyInput);
         extraDiv.appendChild(rubberwareDiv);
         itemContainer.appendChild(extraDiv);
-        // Only show file inputs when status is attention-required
+        // Show file inputs only when "attention-required" is selected
         statusSelect.addEventListener("change", () => {
           const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
           fileInputs.forEach(inp => {
@@ -498,12 +496,10 @@
       });
     }
     
-    // Save basic farm details (only basic fields) to Firebase Storage.
-    // To include checklist extra data in the JSON, merge them into the "farmDetails" object.
+    // Save basic farm details to Firebase Storage using the key with suffix "schedule3"
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
-      // Use the "schedule3" suffix consistently
       const key = dairyNumber + "schedule3";
       const farmDetails = {
         dairyCompany: fd.get("dairy-company") || "",
@@ -513,7 +509,7 @@
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || "",
         visitDate: fd.get("visit-date") || ""
-        // To include checklist extra data, merge here as needed.
+        // To include checklist extra data in the JSON, merge here as needed.
       };
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
@@ -754,7 +750,6 @@
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      // For simplicity, list files from the "Agora schedule 3 Customers" folder
       const storageRef = storage.ref("Agora schedule 3 Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
@@ -841,14 +836,14 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    // ALL FARMS view: Look in "Agora Farm Details" folder for files ending with "schedule3.json"
+    // ALL FARMS view: List only JSON files in "Agora Farm Details" that end with "schedule3.json"
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
       try {
         const storageRef = storage.ref("Agora Farm Details");
         const listResult = await storageRef.listAll();
-        // Filter files that end with "schedule3.json"
+        // Filter files ending with "schedule3.json"
         const schedule3Files = listResult.items.filter(item =>
           item.name.toLowerCase().endsWith("schedule3.json")
         );
@@ -874,7 +869,7 @@
             const url = await fileRef.getDownloadURL();
             const response = await fetch(url);
             const json = await response.json();
-            // Extract dairy number by removing the "schedule3.json" suffix
+            // Remove the suffix "schedule3.json" to get the dairy number
             const dairyNumber = fileRef.name.replace(/schedule3\.json$/i, "");
             const tr = document.createElement("tr");
             tr.innerHTML = `
