@@ -77,7 +77,6 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Logo (same URL as your working reporting form) -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
          alt="Logo" class="logo" style="display: block; margin: 0 auto 20px; width: 250px;" />
     <h1>Agora Schedule 3 Form</h1>
@@ -86,7 +85,6 @@
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <!-- On blur, we call handleDairyNumberBlur() -->
         <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false" />
         <label for="dairy-company">Dairy Company:</label>
         <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false" />
@@ -124,7 +122,7 @@
         <input type="date" class="form-control" id="visit-date" name="visit-date" />
       </div>
       
-      <!-- Checklist Section (Schedule 3 Items) -->
+      <!-- Checklist Items Section -->
       <div class="section mb-4">
         <h2>Checklist Items</h2>
         <div id="checklist-items"></div>
@@ -178,7 +176,6 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const firestore = firebase.firestore();
-    // Use Dexie to store forms and dairy companies locally
     const db = new Dexie("OfflineData");
     db.version(5).stores({
       forms: "dairyNumber",
@@ -235,7 +232,7 @@
       });
     }
     
-    // Auto-populate farm details – note the key now uses the suffix "schedule3"
+    // Auto-populate farm details using key = dairyNumber + "schedule3"
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
@@ -247,13 +244,13 @@
         if (!response.ok) throw new Error('Failed to fetch farm details');
         const data = await response.json();
         if (data) {
-          document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
+          document.getElementById('dairy-company').value = toTitleCase(data["dairy-company"] || '');
           document.getElementById('address').value = toTitleCase(data.address || '');
-          document.getElementById('customer-name').value = toTitleCase(data.customerName || '');
+          document.getElementById('customer-name').value = toTitleCase(data["customer-name"] || '');
           document.getElementById('region').value = data.region || '';
-          document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
+          document.getElementById('farm-name').value = toTitleCase(data["farm-name"] || '');
           document.getElementById('island').value = data.island || '';
-          document.getElementById('visit-date').value = data.visitDate || '';
+          document.getElementById('visit-date').value = data["visit-date"] || '';
         }
       } catch (error) {
         console.error('Error in fetchFarmDetails:', error);
@@ -278,7 +275,6 @@
     
     /* Create Schedule 3 Checklist Items */
     function createSchedule3ChecklistItems() {
-      // Schedule 3 checklist items
       const checklistItems = [
         "Cluster to milk line",
         "Cluster short Pulse tubes",
@@ -317,7 +313,6 @@
         commentsInput.setAttribute("spellcheck", "true");
         commentsInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(commentsInput);
-        // Two file inputs with preview images (initially hidden)
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -327,7 +322,6 @@
           preview.classList.add("image-preview");
           itemContainer.appendChild(preview);
         }
-        // Extra rubberware details container
         const extraDiv = document.createElement("div");
         extraDiv.classList.add("schedule3-extra");
         const installLabel = document.createElement("label");
@@ -369,7 +363,6 @@
         rubberwareDiv.appendChild(qtyInput);
         extraDiv.appendChild(rubberwareDiv);
         itemContainer.appendChild(extraDiv);
-        // Show file inputs only when "attention-required" is selected
         statusSelect.addEventListener("change", () => {
           const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
           fileInputs.forEach(inp => {
@@ -503,27 +496,19 @@
       });
     }
     
-    // Save farm details to Firebase Storage using key = dairyNumber + "schedule3"
+    // Save entire form data to Firebase Storage using key = dairyNumber + "schedule3"
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
       const key = dairyNumber + "schedule3";
-      const farmDetails = {
-        dairyCompany: fd.get("dairy-company") || "",
-        address: fd.get("address") || "",
-        customerName: fd.get("customer-name") || "",
-        region: fd.get("region") || "",
-        farmName: fd.get("farm-name") || "",
-        island: fd.get("island") || "",
-        visitDate: fd.get("visit-date") || ""
-      };
-      const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
+      const data = Object.fromEntries(fd.entries());
+      const jsonBlob = new Blob([JSON.stringify(data)], { type: "application/json" });
       try {
         const storageRefFarm = storage.ref(`Agora Farm Details/${key}.json`);
         await storageRefFarm.put(jsonBlob);
-        console.log("Farm details JSON saved to Agora Farm Details folder.");
+        console.log("Form details JSON saved to Agora Farm Details folder.");
       } catch (err) {
-        console.error("Error saving farm details JSON:", err);
+        console.error("Error saving form details JSON:", err);
       }
     }
     
@@ -558,7 +543,6 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Process checklist items for PDF generation
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistData = [];
       let imagePromises = [];
@@ -617,7 +601,6 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Fetch logo – using same URL as in the form
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -712,20 +695,13 @@
           
           (async function(){
             const pdfBlob = pdf.output("blob");
-            const visitDate = fd.get("visit-date");
-            if (!visitDate) {
-              alert("Visit Date is required.");
-              return;
-            }
-            const dateParts = visitDate.split("-");
-            const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
-            const fileName = `${dairyNumber}-schedule3-${formattedVisitDate}.pdf`;
+            const fileName = `${dairyNumber}Schedule3.pdf`;
             try {
-              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
-              console.log("PDF uploaded to Agora Customers folder successfully");
+              await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora schedule 3 Customers folder successfully");
             } catch(e) {
-              console.error("PDF upload to Agora Customers folder failed:", e);
-              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+              console.error("PDF upload failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "schedule3" });
             }
             db.forms.delete(dairyNumber);
             pdf.save(fileName);
@@ -748,38 +724,40 @@
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      const storageRef = storage.ref("Agora Customers");
+      const storageRef = storage.ref("Agora schedule 3 Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
-        // List subfolders (each dairy-number folder)
         if (folderSnapshot.prefixes.length > 0) {
           folderSnapshot.prefixes.forEach(folderRef => {
             const dairyNumber = folderRef.name;
-            const link = document.createElement("a");
-            link.textContent = dairyNumber;
-            link.href = "#";
-            link.style.display = "block";
-            link.addEventListener("click", () => loadRecordFiles(dairyNumber));
-            recordList.appendChild(link);
+            if (dairyNumber.includes("Schedule3")) {
+              const link = document.createElement("a");
+              link.textContent = dairyNumber;
+              link.href = "#";
+              link.style.display = "block";
+              link.addEventListener("click", () => loadRecordFiles(dairyNumber));
+              recordList.appendChild(link);
+            }
           });
         }
-        // Also list files stored directly in "Agora Customers"
         if (folderSnapshot.items.length > 0) {
           folderSnapshot.items.forEach(fileRef => {
-            const fileName = fileRef.name;
-            const link = document.createElement("a");
-            link.textContent = fileName;
-            link.href = "#";
-            link.style.display = "block";
-            link.addEventListener("click", async () => {
-              try {
-                const url = await fileRef.getDownloadURL();
-                window.open(url, "_blank");
-              } catch (err) {
-                console.error("Error fetching file:", err);
-              }
-            });
-            recordList.appendChild(link);
+            if(fileRef.name.toLowerCase().includes("schedule3.pdf")){
+              const fileName = fileRef.name;
+              const link = document.createElement("a");
+              link.textContent = fileName;
+              link.href = "#";
+              link.style.display = "block";
+              link.addEventListener("click", async () => {
+                try {
+                  const url = await fileRef.getDownloadURL();
+                  window.open(url, "_blank");
+                } catch (err) {
+                  console.error("Error fetching file:", err);
+                }
+              });
+              recordList.appendChild(link);
+            }
           });
         }
       } catch (error) {
@@ -790,18 +768,16 @@
     async function loadRecordFiles(dairyNumber) {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      const folderRef = storage.ref(`Agora Customers/${dairyNumber}`);
+      const folderRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}`);
       try {
         const fileSnapshot = await folderRef.listAll();
         fileSnapshot.items.forEach(fileRef => {
           const fileName = fileRef.name;
-          const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
-          const displayName = dateMatch ? dateMatch[0] : fileName;
-          const fileLink = document.createElement("a");
-          fileLink.textContent = displayName;
-          fileLink.href = "#";
-          fileLink.style.display = "block";
-          fileLink.addEventListener("click", async () => {
+          const link = document.createElement("a");
+          link.textContent = fileName;
+          link.href = "#";
+          link.style.display = "block";
+          link.addEventListener("click", async () => {
             try {
               const url = await fileRef.getDownloadURL();
               window.open(url, "_blank");
@@ -809,7 +785,7 @@
               console.error("Error fetching file:", err);
             }
           });
-          recordList.appendChild(fileLink);
+          recordList.appendChild(link);
         });
         const backBtn = document.createElement("button");
         backBtn.textContent = "Back to Records";
@@ -836,7 +812,7 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    // ALL FARMS view: list only JSON files in "Agora Farm Details" that end with "schedule3.json"
+    // ALL FARMS view: load JSON files from "Agora Farm Details" ending with "schedule3.json" and display a table
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
@@ -850,38 +826,56 @@
           farmsGrid.textContent = "No farm records found.";
           return;
         }
+        let allRows = [];
+        for (const fileRef of schedule3Files) {
+          try {
+            const url = await fileRef.getDownloadURL();
+            const response = await fetch(url);
+            const json = await response.json();
+            const dairyNumber = fileRef.name.replace(/schedule3\.json$/i, "");
+            if(json.checklistItems) {
+              for (const item in json.checklistItems) {
+                const extra = json.checklistItems[item].extra || {};
+                allRows.push({
+                  dairyNumber,
+                  checklistItem: item,
+                  installDate: extra.installDate || "",
+                  replacementDue: extra.replacementDueDate || ""
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error processing file:", fileRef.name, error);
+          }
+        }
+        allRows.sort((a, b) => {
+          if(!a.replacementDue) return 1;
+          if(!b.replacementDue) return -1;
+          return new Date(a.replacementDue) - new Date(b.replacementDue);
+        });
         const table = document.createElement("table");
         table.classList.add("table", "table-striped");
         const thead = document.createElement("thead");
         thead.innerHTML = `
           <tr>
             <th>Dairy Number</th>
-            <th>Farm Name</th>
-            <th>Dairy Company</th>
-            <th>Visit Date</th>
+            <th>Checklist Item</th>
+            <th>Install Date</th>
+            <th>Replacement Due Date</th>
           </tr>
         `;
         table.appendChild(thead);
         const tbody = document.createElement("tbody");
-        for (const fileRef of schedule3Files) {
-          try {
-            const url = await fileRef.getDownloadURL();
-            const response = await fetch(url);
-            const json = await response.json();
-            // Remove the "schedule3.json" suffix to display the dairy number
-            const dairyNumber = fileRef.name.replace(/schedule3\.json$/i, "");
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${dairyNumber}</td>
-              <td>${json.farmName || ""}</td>
-              <td>${json.dairyCompany || ""}</td>
-              <td>${json.visitDate || ""}</td>
-            `;
-            tbody.appendChild(tr);
-          } catch (error) {
-            console.error("Error processing file:", fileRef.name, error);
-          }
-        }
+        allRows.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.dairyNumber}</td>
+            <td>${row.checklistItem}</td>
+            <td>${row.installDate}</td>
+            <td>${row.replacementDue}</td>
+          `;
+          tbody.appendChild(tr);
+        });
         table.appendChild(tbody);
         farmsGrid.appendChild(table);
       } catch (error) {
