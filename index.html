@@ -3,130 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agora Schedule 3 – Change Dates (REST API Listing)</title>
+  <title>Agora Schedule 3 – Change Dates</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
     body {
-      background: #d2d7dd;
+      background-color: #d2d7dd;
       font-family: Arial, sans-serif;
       padding: 20px;
     }
     .container {
       max-width: 800px;
       margin: auto;
-      background: #fff;
+      background-color: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-    h1, h2, h3 {
+    h1, h2 {
       text-align: center;
       color: #002B5C;
     }
-    .farm-box {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      background: #f8f9fa;
+    .farm-details {
+      margin-top: 20px;
     }
-    .back-button, .reload-btn {
-      background: #002B5C;
+    .farm-details p {
+      margin-bottom: 5px;
+    }
+    .checklist-table {
+      width: 100%;
+      margin-top: 15px;
+      border-collapse: collapse;
+    }
+    .checklist-table th, .checklist-table td {
+      border: 1px solid #ccc;
+      padding: 5px;
+      text-align: left;
+    }
+    .checklist-table th {
+      background-color: #f0f0f0;
+    }
+    .back-button, .load-btn {
+      background-color: #002B5C;
       color: #fff;
       border: none;
       padding: 10px 20px;
       margin-top: 20px;
       cursor: pointer;
       border-radius: 5px;
+      display: block;
+      width: 200px;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
 <body>
   <div class="container" id="main-container">
-    <h1>Agora Schedule 3</h1>
-    <button class="reload-btn" onclick="showChangeDates()">Change Dates</button>
-  </div>
-  
-  <div class="container" id="change-dates-container" style="display:none;">
-    <h2>Schedule 3 Farm Details</h2>
-    <div id="farms-container">
-      <!-- Farm boxes will be added here -->
+    <h1>Agora Schedule 3 – Change Dates</h1>
+    <p>Enter the Dairy Number (e.g. 49) to load its farm details.</p>
+    <div class="mb-3">
+      <label for="dairy-number" class="form-label">Dairy Number</label>
+      <input type="text" class="form-control" id="dairy-number" placeholder="e.g. 49">
     </div>
-    <button class="back-button" onclick="backToMain()">Back to Main</button>
+    <button class="load-btn" onclick="loadFarmDetailsSchedule3()">Load Farm Details</button>
+    
+    <!-- This section will display the farm details once loaded -->
+    <div id="farm-details" class="farm-details" style="display:none;">
+      <h2>Farm Details</h2>
+      <p><strong>Dairy Number:</strong> <span id="display-dairy-number"></span></p>
+      <p><strong>Dairy Company:</strong> <span id="display-dairy-company"></span></p>
+      <p><strong>Address:</strong> <span id="display-address"></span></p>
+      <p><strong>Customer Name:</strong> <span id="display-customer-name"></span></p>
+      <p><strong>Region:</strong> <span id="display-region"></span></p>
+      <p><strong>Farm Name:</strong> <span id="display-farm-name"></span></p>
+      <p><strong>Island:</strong> <span id="display-island"></span></p>
+      
+      <h3 class="mt-4">Checklist Extra Details</h3>
+      <table class="checklist-table">
+        <thead>
+          <tr>
+            <th>Checklist Item</th>
+            <th>Install Date</th>
+            <th>Replacement Due</th>
+            <th>Rubberware Size</th>
+          </tr>
+        </thead>
+        <tbody id="checklist-body">
+          <!-- Checklist extra details will be inserted here -->
+        </tbody>
+      </table>
+      <button class="back-button" onclick="backToInput()">Back</button>
+    </div>
   </div>
   
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Show Change Dates container and load files via REST API
-    function showChangeDates() {
-      document.getElementById("main-container").style.display = "none";
-      document.getElementById("change-dates-container").style.display = "block";
-      loadFarmsREST();
-    }
-    
-    function backToMain() {
-      document.getElementById("change-dates-container").style.display = "none";
-      document.getElementById("main-container").style.display = "block";
-    }
-    
-    // Use the Firebase Storage REST API to list files in the folder.
-    async function loadFarmsREST() {
-      const farmsContainer = document.getElementById("farms-container");
-      farmsContainer.innerHTML = "<p>Loading farm details...</p>";
-      
-      // Construct the URL for listing files. 
-      // Replace spaces with %20 and ensure the prefix is exactly as in your storage.
-      const listURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o?delimiter=/&prefix=Agora%20schedule%203%20farm%20details%2F";
-      console.log("Fetching list from:", listURL);
+    // Initialize Firebase – replace with your exact configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
+      authDomain: "dairy-farm-record-system.firebaseapp.com",
+      projectId: "dairy-farm-record-system",
+      storageBucket: "dairy-farm-record-system.appspot.com",
+      messagingSenderId: "422124188212",
+      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    // Load the farm details based on the dairy number entered
+    async function loadFarmDetailsSchedule3() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) {
+        alert("Please enter a Dairy Number.");
+        return;
+      }
+      // Build the file path exactly as stored
+      const filePath = `Agora schedule 3 farm details/${dairyNumber}.json`;
+      const fileRef = storage.ref(filePath);
       try {
-        const res = await fetch(listURL);
-        const data = await res.json();
-        console.log("List API returned:", data);
-        farmsContainer.innerHTML = "";
-        if (!data.items || data.items.length === 0) {
-          farmsContainer.innerHTML = "<p>No farm details found.</p>";
-          return;
+        const url = await fileRef.getDownloadURL();
+        console.log("Download URL:", url);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch the farm details.");
         }
-        for (const item of data.items) {
-          // item.name is URL-encoded. Decode it.
-          const decodedName = decodeURIComponent(item.name);
-          console.log("Found file:", decodedName);
-          // Fetch the file directly.
-          const fileURL = `https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/${item.name}?alt=media`;
-          try {
-            const fileRes = await fetch(fileURL);
-            const fileData = await fileRes.json();
-            const dairyNum = fileData.dairyNumber || decodedName.replace("Agora schedule 3 farm details/", "").replace(".json", "");
-            createFarmBox(dairyNum, fileData, decodedName.replace("Agora schedule 3 farm details/", ""));
-          } catch (e) {
-            console.error("Error fetching file data for", decodedName, e);
-          }
-        }
+        const data = await response.json();
+        console.log("Farm Data:", data);
+        displayFarmDetails(dairyNumber, data);
       } catch (error) {
-        console.error("Error listing files via REST API:", error);
-        farmsContainer.innerHTML = "<p>Error loading farm details.</p>";
+        console.error("Error loading farm details:", error);
+        alert("Error loading farm details for dairy number " + dairyNumber);
       }
     }
-    
-    // Create a farm box with the data
-    function createFarmBox(dairyNum, data, fileName) {
-      const farmsContainer = document.getElementById("farms-container");
-      const box = document.createElement("div");
-      box.className = "farm-box";
+
+    // Display the farm details on the page
+    function displayFarmDetails(dairyNumber, data) {
+      document.getElementById("display-dairy-number").textContent = dairyNumber;
+      document.getElementById("display-dairy-company").textContent = data.dairyCompany || "N/A";
+      document.getElementById("display-address").textContent = data.address || "N/A";
+      document.getElementById("display-customer-name").textContent = data.customerName || "N/A";
+      document.getElementById("display-region").textContent = data.region || "N/A";
+      document.getElementById("display-farm-name").textContent = data.farmName || "N/A";
+      document.getElementById("display-island").textContent = data.island || "N/A";
       
-      let html = `<h3>${data.farmName || "Farm " + dairyNum}</h3>`;
-      html += `<p><strong>Dairy Number:</strong> ${dairyNum}</p>`;
-      html += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
-      html += `<h4>Checklist Extra:</h4>`;
-      if(data.checklistExtra) {
-        for(const key in data.checklistExtra) {
+      const tbody = document.getElementById("checklist-body");
+      tbody.innerHTML = "";
+      if (data.checklistExtra) {
+        for (const key in data.checklistExtra) {
           const extra = data.checklistExtra[key];
-          html += `<p><strong>${key}:</strong> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}</p>`;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${key}</td>
+            <td>${extra.installDate || "N/A"}</td>
+            <td>${extra.replacementDue || "N/A"}</td>
+            <td>${extra.rubberwareSize || "N/A"}</td>
+          `;
+          tbody.appendChild(tr);
         }
       } else {
-        html += "<p>No extra details.</p>";
+        tbody.innerHTML = `<tr><td colspan="4">No checklist extra details found.</td></tr>`;
       }
-      box.innerHTML = html;
-      farmsContainer.appendChild(box);
+      document.getElementById("farm-details").style.display = "block";
+    }
+
+    // Go back to input screen
+    function backToInput() {
+      document.getElementById("farm-details").style.display = "none";
     }
   </script>
 </body>
