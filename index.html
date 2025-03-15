@@ -8,8 +8,8 @@
     body {
       font-family: Arial, sans-serif;
       background-color: #eef;
-      margin: 0;
       padding: 20px;
+      margin: 0;
     }
     .container {
       max-width: 900px;
@@ -23,23 +23,15 @@
       text-align: center;
       color: #002B5C;
     }
-    #searchInput {
-      width: 100%;
-      padding: 10px;
-      margin: 15px 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ccc;
       padding: 8px;
       text-align: left;
-      font-size: 14px;
     }
     th {
       background-color: #f0f0f0;
@@ -53,122 +45,89 @@
 <body>
   <div class="container">
     <h1>All Farms – Agora Schedule 3</h1>
-    <p>Below all farms are automatically loaded from your folder. Use the search box to filter results.</p>
-    <input type="text" id="searchInput" placeholder="Search farms..." oninput="filterTable()">
-    <div id="tableContainer">
-      <p>Loading farm details...</p>
-    </div>
+    <p>Below are the farm details loaded directly using known dairy numbers.</p>
+    <table id="farmTable">
+      <thead>
+        <tr>
+          <th>Dairy Number</th>
+          <th>Farm Name</th>
+          <th>Dairy Company</th>
+          <th>Address</th>
+          <th>Customer Name</th>
+          <th>Region</th>
+          <th>Island</th>
+          <th>Checklist Extra</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <p id="errorMessage" class="error"></p>
   </div>
-
+  
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // This REST API URL lists files in the folder.
-    const listURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o?delimiter=/&prefix=Agora%20schedule%203%20farm%20details%2F";
+    // Initialize Firebase – use your exact configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
+      authDomain: "dairy-farm-record-system.firebaseapp.com",
+      projectId: "dairy-farm-record-system",
+      storageBucket: "dairy-farm-record-system.appspot.com",
+      messagingSenderId: "422124188212",
+      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
 
-    // Function to load all farms from the folder using the REST API.
+    // Hard-coded list of dairy numbers (replace with your actual list if available)
+    const dairyNumbers = ["49", "50", "51"]; // For testing
+
     async function loadAllFarms() {
-      const container = document.getElementById("tableContainer");
-      container.innerHTML = "<p>Loading farm details...</p>";
-      try {
-        const res = await fetch(listURL);
-        if (!res.ok) {
-          throw new Error("HTTP error " + res.status);
-        }
-        const listData = await res.json();
-        console.log("List data:", listData);
-        if (!listData.items || listData.items.length === 0) {
-          container.innerHTML = "<p class='error'>No farm details found.</p>";
-          return;
-        }
-        let rows = "";
-        // Process each file
-        for (const item of listData.items) {
-          // item.name is URL-encoded, decode it.
-          const decodedName = decodeURIComponent(item.name); // e.g. "Agora schedule 3 farm details/49.json"
-          const fileName = decodedName.split("/").pop(); // "49.json"
-          const dairyNumber = fileName.replace(".json", "");
-          // Build file URL to fetch its content
-          const fileURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/" +
-                          encodeURIComponent(decodedName) + "?alt=media";
-          try {
-            console.log("Fetching file:", fileName);
-            const fileRes = await fetch(fileURL);
-            if (!fileRes.ok) {
-              console.warn("File not accessible for dairy", dairyNumber);
-              continue;
+      const tbody = document.querySelector("#farmTable tbody");
+      const errorMessage = document.getElementById("errorMessage");
+      tbody.innerHTML = "";
+      errorMessage.textContent = "";
+      
+      for (const dairy of dairyNumbers) {
+        const filePath = `Agora schedule 3 farm details/${dairy}.json`;
+        const fileRef = storage.ref(filePath);
+        try {
+          const url = await fileRef.getDownloadURL();
+          console.log("Loaded file for dairy", dairy, "URL:", url);
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("HTTP error " + res.status);
+          const data = await res.json();
+          let checklistStr = "";
+          if (data.checklistExtra) {
+            for (const key in data.checklistExtra) {
+              const extra = data.checklistExtra[key];
+              checklistStr += `${key}: Install ${extra.installDate || "N/A"}, Replacement ${extra.replacementDue || "N/A"}, Rubberware ${extra.rubberwareSize || "N/A"}<br>`;
             }
-            const data = await fileRes.json();
-            console.log("Data for dairy", dairyNumber, data);
-            let checklistStr = "";
-            if (data.checklistExtra) {
-              for (const key in data.checklistExtra) {
-                const extra = data.checklistExtra[key];
-                checklistStr += `${key}: Install ${extra.installDate || "N/A"}, Replacement ${extra.replacementDue || "N/A"}, Rubberware ${extra.rubberwareSize || "N/A"}<br>`;
-              }
-            } else {
-              checklistStr = "N/A";
-            }
-            rows += `<tr>
-              <td>${dairyNumber}</td>
-              <td>${data.farmName || "N/A"}</td>
-              <td>${data.dairyCompany || "N/A"}</td>
-              <td>${data.address || "N/A"}</td>
-              <td>${data.customerName || "N/A"}</td>
-              <td>${data.region || "N/A"}</td>
-              <td>${data.island || "N/A"}</td>
-              <td>${checklistStr}</td>
-            </tr>`;
-          } catch (e) {
-            console.error("Error processing file", decodedName, e);
-            rows += `<tr><td colspan="8" class="error">Error loading dairy ${dairyNumber}: ${e.message}</td></tr>`;
+          } else {
+            checklistStr = "N/A";
           }
+          const row = `<tr>
+            <td>${dairy}</td>
+            <td>${data.farmName || "N/A"}</td>
+            <td>${data.dairyCompany || "N/A"}</td>
+            <td>${data.address || "N/A"}</td>
+            <td>${data.customerName || "N/A"}</td>
+            <td>${data.region || "N/A"}</td>
+            <td>${data.island || "N/A"}</td>
+            <td>${checklistStr}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        } catch (error) {
+          console.error("Error loading dairy", dairy, error);
+          tbody.innerHTML += `<tr><td colspan="8" class="error">Error loading dairy ${dairy}: ${error.message}</td></tr>`;
         }
-        const tableHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th>Dairy Number</th>
-                <th>Farm Name</th>
-                <th>Dairy Company</th>
-                <th>Address</th>
-                <th>Customer Name</th>
-                <th>Region</th>
-                <th>Island</th>
-                <th>Checklist Extra</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-            </tbody>
-          </table>`;
-        container.innerHTML = tableHTML;
-      } catch (error) {
-        console.error("Error listing files:", error);
-        container.innerHTML = `<p class="error">Error loading farm details: ${error.message}</p>`;
       }
     }
 
-    // Function to filter the table rows based on search input.
-    function filterTable() {
-      const input = document.getElementById("searchInput");
-      const filter = input.value.toLowerCase();
-      const table = document.querySelector("table");
-      if (!table) return;
-      const trs = table.getElementsByTagName("tr");
-      // Skip header row at index 0.
-      for (let i = 1; i < trs.length; i++) {
-        let visible = false;
-        const tds = trs[i].getElementsByTagName("td");
-        for (let j = 0; j < tds.length; j++) {
-          if (tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
-            visible = true;
-            break;
-          }
-        }
-        trs[i].style.display = visible ? "" : "none";
-      }
-    }
-
-    // Auto-load all farms on page load.
+    // Auto-load when page loads
     window.addEventListener("load", loadAllFarms);
   </script>
 </body>
