@@ -1,181 +1,804 @@
-from fpdf import FPDF
-from datetime import datetime
-
-# Checklist data (from the first code) for each farm.
-# Each checklist item includes all details: sizes, quantity, expiry, install, etc.
-checklist_data = {
-    "Farm 1": [
-        {
-            "item": "Fire Extinguishers",
-            "sizes": "9kg",
-            "quantity": 2,
-            "expiry": "11/2025",
-            "install": "05/2021"
-        },
-        {
-            "item": "First Aid Kits",
-            "sizes": "Large",
-            "quantity": 1,
-            "expiry": "07/2024",
-            "install": "N/A"
-        },
-        {
-            "item": "Ladders",
-            "sizes": "2m",
-            "quantity": 2,
-            "expiry": "N/A",
-            "install": "03/2018"
-        },
-        {
-            "item": "Safety Signage",
-            "sizes": "Standard",
-            "quantity": 4,
-            "expiry": "N/A",
-            "install": "06/2019"
-        }
-    ],
-    "Farm 2": [
-        {
-            "item": "Fire Extinguishers",
-            "sizes": "9kg",
-            "quantity": 1,
-            "expiry": "05/2024",
-            "install": "08/2019"
-        },
-        {
-            "item": "First Aid Kits",
-            "sizes": "Large",
-            "quantity": 1,
-            "expiry": "09/2025",
-            "install": "01/2020"
-        },
-        {
-            "item": "Ladders",
-            "sizes": "3m",
-            "quantity": 1,
-            "expiry": "N/A",
-            "install": "07/2020"
-        },
-        {
-            "item": "Safety Signage",
-            "sizes": "Standard",
-            "quantity": 3,
-            "expiry": "N/A",
-            "install": "05/2018"
-        }
-    ],
-    "Farm 3": [
-        {
-            "item": "Fire Extinguishers",
-            "sizes": "9kg",
-            "quantity": 3,
-            "expiry": "08/2026",
-            "install": "04/2021"
-        },
-        {
-            "item": "First Aid Kits",
-            "sizes": "Large",
-            "quantity": 2,
-            "expiry": "12/2024",
-            "install": "03/2021"
-        },
-        {
-            "item": "Ladders",
-            "sizes": "2.5m",
-            "quantity": 2,
-            "expiry": "N/A",
-            "install": "09/2019"
-        },
-        {
-            "item": "Safety Signage",
-            "sizes": "Standard",
-            "quantity": 5,
-            "expiry": "N/A",
-            "install": "02/2022"
-        }
-    ]
-}
-
-def generate_checklist_pdf(selected_farm):
-    """Generate a checklist PDF for the selected farm or all farms."""
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- META & STYLES -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agora Schedule 3 Form</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+  <style>
+    /* Overall styling */
+    body {
+      background-color: #d2d7dd;
+      color: #000;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+      margin: 0;
+    }
+    .container, .record-container {
+      background-color: #d2d7dd;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      max-width: 800px;
+      width: 100%;
+      margin: 20px auto;
+    }
+    .record-container { background-color: #fff; }
+    h1, h2, h3 { text-align: center; }
+    h1, h2 { color: #333; }
+    h3 { color: #002B5C; margin-top: 20px; }
+    label { color: #000; margin-top: 10px; }
+    input[type="text"], input[type="date"], input[type="number"], select, input[type="time"] {
+      autocorrect: on;
+    }
+    button {
+      background-color: #FFD700;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 10px 5px;
+      border-radius: 5px;
+    }
+    button:hover { background-color: #E6C200; }
+    .back-button { background-color: #002B5C; color: #fff; }
+    .image-upload { display: none; }
+    .image-preview {
+      display: none;
+      max-width: 200px;
+      max-height: 200px;
+      margin-top: 5px;
+      border: 2px solid #ccc;
+    }
+    .schedule3-extra {
+      margin-top: 10px;
+      border: 1px solid #aaa;
+      padding: 5px;
+      border-radius: 5px;
+      background: #f1f1f1;
+    }
+    .schedule3-extra label { font-weight: bold; font-size: 0.9em; }
+    .version { text-align: center; margin-top: 20px; font-size: 12px; color: #333; }
+  </style>
+</head>
+<body>
+  <!-- MAIN FORM CONTAINER -->
+  <div class="container" id="form-container">
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
+         alt="Logo" class="logo" style="display: block; margin: 0 auto 20px; width: 250px;" />
+    <h1>Agora Schedule 3 Form</h1>
+    <form id="schedule3-form">
+      <!-- Farm Details Section -->
+      <div class="section mb-4">
+        <h2>Farm Details</h2>
+        <label for="dairy-number">Dairy Number:</label>
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false" />
+        <label for="dairy-company">Dairy Company:</label>
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false" />
+        <datalist id="dairy-company-list"></datalist>
+        <label for="address">Address:</label>
+        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="false" />
+        <label for="customer-name">Customer Name:</label>
+        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="on" spellcheck="false" />
+        <label for="region">Region:</label>
+        <select id="region" name="region" class="form-select">
+          <option value="northland">Northland</option>
+          <option value="auckland">Auckland</option>
+          <option value="waikato">Waikato</option>
+          <option value="bay-of-plenty">Bay of Plenty</option>
+          <option value="gisborne">Gisborne</option>
+          <option value="hawkes-bay">Hawke's Bay</option>
+          <option value="taranaki">Taranaki</option>
+          <option value="manawatu-wanganui">Manawatu-Wanganui</option>
+          <option value="wellington">Wellington</option>
+          <option value="nelson">Nelson</option>
+          <option value="marlborough">Marlborough</option>
+          <option value="west-coast">West Coast</option>
+          <option value="canterbury">Canterbury</option>
+          <option value="otago">Otago</option>
+          <option value="southland">Southland</option>
+        </select>
+        <label for="farm-name">Farm Name:</label>
+        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="on" spellcheck="false" />
+        <label for="island">Island:</label>
+        <select id="island" name="island" class="form-select">
+          <option value="north-island">North Island</option>
+          <option value="south-island">South Island</option>
+        </select>
+        <label for="visit-date">Visit Date:</label>
+        <input type="date" class="form-control" id="visit-date" name="visit-date" />
+      </div>
+      
+      <!-- Checklist Items Section (using Schedule 3 items from first code) -->
+      <div class="section mb-4">
+        <h2>Checklist Items</h2>
+        <div id="checklist-items"></div>
+      </div>
+      
+      <!-- Buttons -->
+      <div style="text-align: center;">
+        <button type="button" onclick="generatePDF()">Generate PDF</button>
+        <button type="button" onclick="viewSchedule3Records()">View All Records</button>
+      </div>
+    </form>
+    <div class="version">Version 1.1 (Agora Schedule 3)</div>
+  </div>
+  
+  <!-- RECORDS VIEW (kept from second code) -->
+  <div id="record-container" class="record-container" style="display: none;">
+    <h2>All Schedule 3 Records</h2>
+    <div class="search-container">
+      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecords()" />
+    </div>
+    <div id="record-list" class="record-list"></div>
+    <button class="back-button" onclick="goBack()">Back to Form</button>
+  </div>
+  
+  <!-- SCRIPTS: Firebase, Dexie, jsPDF & jsPDF-AutoTable libraries -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.0.3/dexie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    // Initialize Firebase and Dexie (using second code’s configuration)
+    const { jsPDF } = window.jspdf;
+    const firebaseConfig = {
+      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
+      authDomain: "dairy-farm-record-system.firebaseapp.com",
+      projectId: "dairy-farm-record-system",
+      storageBucket: "dairy-farm-record-system.appspot.com",
+      messagingSenderId: "422124188212",
+      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const firestore = firebase.firestore();
+    const db = new Dexie("OfflineData");
+    db.version(5).stores({
+      forms: "dairyNumber",
+      dairyCompanies: "++id, name",
+      pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
+    });
     
-    if selected_farm != "All Farms":
-        # Single farm PDF generation
-        pdf.add_page()
-        # Place the logo at the original coordinates (logo placement unchanged)
-        try:
-            pdf.image("logo.png", 10, 8, 33)  # Use the same file path/coords as in original code
-        except Exception:
-            pass  # If logo file not found or error, skip to avoid breaking execution
-        # Title (farm name) centered at top
-        pdf.set_font("Arial", 'B', 16)
-        pdf.cell(0, 10, f"{selected_farm} Checklist", ln=1, align='C')
-        pdf.ln(5)
-        # Checklist items with details
-        pdf.set_font("Arial", '', 12)
-        for item in checklist_data.get(selected_farm, []):
-            # Main checklist item with a checkbox placeholder
-            pdf.cell(0, 8, f"[ ] {item['item']}", ln=1)
-            # Details (sizes, quantity, expiry, install) in indented sub-lines
-            pdf.set_font("Arial", '', 11)
-            pdf.cell(0, 6, f"   Sizes: {item['sizes']}", ln=1)
-            pdf.cell(0, 6, f"   Quantity: {item['quantity']}", ln=1)
-            pdf.cell(0, 6, f"   Expiry: {item['expiry']}", ln=1)
-            pdf.cell(0, 6, f"   Install: {item['install']}", ln=1)
-            pdf.ln(4)  # small spacing after each item block
-            pdf.set_font("Arial", '', 12)  # reset font for next item
-    else:
-        # "All Farms" combined PDF generation
-        pdf.add_page()
-        try:
-            pdf.image("logo.png", 10, 8, 33)
-        except Exception:
-            pass
-        pdf.set_font("Arial", 'B', 16)
-        pdf.cell(0, 10, "All Farms - Combined Checklist", ln=1, align='C')
-        pdf.ln(5)
-        # Loop through each farm and list its items
-        farm_count = len(checklist_data)
-        current_index = 0
-        for farm, items in checklist_data.items():
-            current_index += 1
-            # Farm name subheading
-            pdf.set_font("Arial", 'B', 14)
-            pdf.cell(0, 8, farm, ln=1)
-            pdf.set_font("Arial", '', 12)
-            for item in items:
-                pdf.cell(0, 8, f"[ ] {item['item']}", ln=1)
-                pdf.set_font("Arial", '', 11)
-                pdf.cell(0, 6, f"   Sizes: {item['sizes']}", ln=1)
-                pdf.cell(0, 6, f"   Quantity: {item['quantity']}", ln=1)
-                pdf.cell(0, 6, f"   Expiry: {item['expiry']}", ln=1)
-                pdf.cell(0, 6, f"   Install: {item['install']}", ln=1)
-                pdf.ln(4)
-                pdf.set_font("Arial", '', 12)
-            # Start each farm's list on a new page (except after the last farm)
-            if current_index < farm_count:
-                pdf.add_page()
-                try:
-                    pdf.image("logo.png", 10, 8, 33)
-                except Exception:
-                    pass
-                pdf.ln(5)
-    # Save PDF following original naming conventions (include farm name and date)
-    date_str = datetime.now().strftime("%d-%m-%Y")
-    farm_label = selected_farm.replace(" ", "_")
-    filename = f"{farm_label}_Checklist_{date_str}.pdf"
-    file_path = f"/mnt/data/{filename}"
-    pdf.output(file_path)
-    return file_path
-
-# Example usage:
-if __name__ == "__main__":
-    # Select a farm or use "All Farms"
-    selected_farm = "All Farms"
-    if selected_farm != "All Farms" and selected_farm not in checklist_data:
-        print(f"Invalid farm selection. Available farms: {', '.join(checklist_data.keys())} or 'All Farms'.")
-    else:
-        output_file = generate_checklist_pdf(selected_farm)
-        print(f"Checklist PDF generated: {output_file}")
+    // Register service worker if available
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
+    }
+    
+    /* Utility Functions */
+    function toTitleCase(str) {
+      return str.replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+      });
+    }
+    function autoCapitalizeInput(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
+    }
+    
+    async function setupDairyCompanyDatalist() {
+      const defaultCompanies = [
+        "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
+        "Oceania", "OFI", "Synlait Milk LTD", "Tatua", "Danone", "Fresha Valley LTD",
+        "Mataura Valley Milk", "Open Country Dairy LTD", "Waiu", "Westland Milk Products"
+      ];
+      const userCompanies = await db.dairyCompanies.toArray();
+      const allCompanies = [...defaultCompanies];
+      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
+      const datalist = document.getElementById('dairy-company-list');
+      datalist.innerHTML = "";
+      allCompanies.forEach(c => { 
+        const opt = document.createElement('option');
+        opt.value = c;
+        datalist.appendChild(opt);
+      });
+      const dairyCompanyInput = document.getElementById('dairy-company');
+      dairyCompanyInput.addEventListener('blur', async () => {
+        dairyCompanyInput.value = toTitleCase(dairyCompanyInput.value.trim());
+        const typedValue = dairyCompanyInput.value;
+        if (typedValue && !allCompanies.includes(typedValue)) {
+          await db.dairyCompanies.add({ name: typedValue });
+          allCompanies.push(typedValue);
+          const newOpt = document.createElement('option');
+          newOpt.value = typedValue;
+          datalist.appendChild(newOpt);
+        }
+      });
+    }
+    
+    // Auto-populate farm details using key = dairyNumber + "schedule3"
+    async function fetchFarmDetails() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      const key = dairyNumber + "schedule3";
+      const storageRef = storage.ref(`Agora Farm Details/${key}.json`);
+      try {
+        const url = await storageRef.getDownloadURL();
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch farm details');
+        const data = await response.json();
+        if (data) {
+          document.getElementById('dairy-company').value = toTitleCase(data["dairy-company"] || '');
+          document.getElementById('address').value = toTitleCase(data.address || '');
+          document.getElementById('customer-name').value = toTitleCase(data["customer-name"] || '');
+          document.getElementById('region').value = data.region || '';
+          document.getElementById('farm-name').value = toTitleCase(data["farm-name"] || '');
+          document.getElementById('island').value = data.island || '';
+          document.getElementById('visit-date').value = data["visit-date"] || '';
+        }
+      } catch (error) {
+        console.error('Error in fetchFarmDetails:', error);
+      }
+    }
+    
+    async function checkOrCreateFormRecord() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      let record = await db.forms.get(dairyNumber);
+      if (!record) {
+        record = { dairyNumber, formData: {}, creationTime: Date.now() };
+        await db.forms.put(record);
+      }
+    }
+    async function handleDairyNumberBlur() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      await fetchFarmDetails();
+      await checkOrCreateFormRecord();
+    }
+    
+    /* Create Schedule 3 Checklist Items (from first code) */
+    function createSchedule3ChecklistItems() {
+      const checklistItems = [
+        "Cluster to milk line",
+        "Cluster short Pulse tubes",
+        "Cluster pulse tube to pulsator",
+        "Cluster bowl seal",
+        "Cluster small ring seal",
+        "Liners",
+        "Milk filter seal",
+        "Front Vat tap seal",
+        "Back vat tap seal",
+        "Vat door seal"
+      ];
+      const container = document.getElementById("checklist-items");
+      container.innerHTML = "";
+      checklistItems.forEach(item => {
+        const itemContainer = document.createElement("div");
+        itemContainer.classList.add("checklist-item");
+        const label = document.createElement("label");
+        label.textContent = item;
+        itemContainer.appendChild(label);
+        const statusSelect = document.createElement("select");
+        statusSelect.classList.add("form-select");
+        statusSelect.name = `status-${item}`;
+        statusSelect.innerHTML = `
+          <option value="ok">OK</option>
+          <option value="attention-required">Attention Required</option>
+          <option value="na">N/A</option>
+          <option value="not-checked">Not Checked</option>
+        `;
+        itemContainer.appendChild(statusSelect);
+        const commentsInput = document.createElement("input");
+        commentsInput.type = "text";
+        commentsInput.classList.add("form-control");
+        commentsInput.name = `comments-${item}`;
+        commentsInput.placeholder = "Comments";
+        commentsInput.setAttribute("spellcheck", "true");
+        commentsInput.setAttribute("autocorrect", "on");
+        itemContainer.appendChild(commentsInput);
+        // Two file inputs (hidden unless attention required)
+        for (let i = 0; i < 2; i++) {
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.classList.add("form-control", "image-upload");
+          itemContainer.appendChild(fileInput);
+          const preview = document.createElement("img");
+          preview.classList.add("image-preview");
+          itemContainer.appendChild(preview);
+        }
+        // Extra rubberware details container
+        const extraDiv = document.createElement("div");
+        extraDiv.classList.add("schedule3-extra");
+        const installLabel = document.createElement("label");
+        installLabel.textContent = "Install Date:";
+        extraDiv.appendChild(installLabel);
+        const installInput = document.createElement("input");
+        installInput.type = "date";
+        installInput.classList.add("form-control");
+        installInput.name = `install-${item}`;
+        extraDiv.appendChild(installInput);
+        const replacementLabel = document.createElement("label");
+        replacementLabel.textContent = "Replacement Due Date:";
+        extraDiv.appendChild(replacementLabel);
+        const replacementInput = document.createElement("input");
+        replacementInput.type = "date";
+        replacementInput.classList.add("form-control");
+        replacementInput.name = `replacement-${item}`;
+        extraDiv.appendChild(replacementInput);
+        // Rubberware details: Dimensions, Length, Quantity
+        const rubberwareDiv = document.createElement("div");
+        rubberwareDiv.style.display = "flex";
+        rubberwareDiv.style.gap = "5px";
+        const dimInput = document.createElement("input");
+        dimInput.type = "text";
+        dimInput.classList.add("form-control");
+        dimInput.name = `rubberware-dimensions-${item}`;
+        dimInput.placeholder = "Dimensions";
+        rubberwareDiv.appendChild(dimInput);
+        const lengthInput = document.createElement("input");
+        lengthInput.type = "text";
+        lengthInput.classList.add("form-control");
+        lengthInput.name = `rubberware-length-${item}`;
+        lengthInput.placeholder = "Length";
+        rubberwareDiv.appendChild(lengthInput);
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "number";
+        qtyInput.classList.add("form-control");
+        qtyInput.name = `rubberware-quantity-${item}`;
+        qtyInput.placeholder = "Quantity";
+        rubberwareDiv.appendChild(qtyInput);
+        extraDiv.appendChild(rubberwareDiv);
+        itemContainer.appendChild(extraDiv);
+        // Show file inputs only when "attention-required" is selected
+        statusSelect.addEventListener("change", () => {
+          const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+          fileInputs.forEach(inp => {
+            inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+          });
+        });
+        container.appendChild(itemContainer);
+      });
+    }
+    
+    /* LOAD, CLEAR & SAVE Data */
+    function loadFormDataFromRecord(record) {
+      const data = record.formData || {};
+      document.getElementById("dairy-number").value = data["dairy-number"] || record.dairyNumber;
+      const fields = ["dairy-company", "address", "customer-name", "region", "farm-name", "island", "visit-date"];
+      fields.forEach(key => {
+        const field = document.getElementById(key) || document.getElementsByName(key)[0];
+        if (field && data[key]) { field.value = data[key]; }
+      });
+      if (data.checklistItems) {
+        const containers = document.getElementById("checklist-items").children;
+        Array.from(containers).forEach(container => {
+          const label = container.querySelector("label");
+          if (!label) return;
+          const key = label.textContent.trim();
+          if (data.checklistItems[key]) {
+            const { status, comments, extra, imagesBase64 } = data.checklistItems[key];
+            const statusSelect = container.querySelector("select");
+            if (statusSelect) {
+              statusSelect.value = status;
+              statusSelect.dispatchEvent(new Event("change"));
+            }
+            const commentsInput = container.querySelector('input[type="text"]');
+            if (commentsInput) { commentsInput.value = comments; }
+            if (extra) {
+              const installIn = container.querySelector(`input[name="install-${key}"]`);
+              const replacementIn = container.querySelector(`input[name="replacement-${key}"]`);
+              const dimIn = container.querySelector(`input[name="rubberware-dimensions-${key}"]`);
+              const lengthIn = container.querySelector(`input[name="rubberware-length-${key}"]`);
+              const qtyIn = container.querySelector(`input[name="rubberware-quantity-${key}"]`);
+              if (installIn) installIn.value = extra.installDate || "";
+              if (replacementIn) replacementIn.value = extra.replacementDueDate || "";
+              if (dimIn) dimIn.value = extra.rubberwareDimensions || "";
+              if (lengthIn) lengthIn.value = extra.rubberwareLength || "";
+              if (qtyIn) qtyIn.value = extra.rubberwareQuantity || "";
+            }
+            if (imagesBase64 && imagesBase64.length > 0) {
+              const previews = container.querySelectorAll(".image-preview");
+              imagesBase64.forEach((img64, i) => {
+                if (previews[i]) {
+                  previews[i].src = img64;
+                  previews[i].style.display = "block";
+                }
+              });
+            }
+          }
+        });
+      }
+    }
+    
+    function clearEntireForm() {
+      document.getElementById("schedule3-form").reset();
+      const imageUploads = document.querySelectorAll(".image-upload");
+      imageUploads.forEach(inp => { inp.style.display = "none"; });
+      const previews = document.querySelectorAll(".image-preview");
+      previews.forEach(img => { img.src = ""; img.style.display = "none"; });
+    }
+    
+    async function saveFormData() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) return;
+      let record = await db.forms.get(dairyNumber);
+      if (!record) { record = { dairyNumber, formData: {}, creationTime: Date.now() }; }
+      const form = document.getElementById("schedule3-form");
+      const formDataObj = new FormData(form);
+      const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
+      data["dairy-number"] = dairyNumber;
+      
+      const checklistContainers = document.getElementById("checklist-items").children;
+      const checklistItemsData = {};
+      await Promise.all(Array.from(checklistContainers).map(async container => {
+        const label = container.querySelector("label");
+        if (!label) return;
+        const key = label.textContent.trim();
+        const statusSelect = container.querySelector("select");
+        const status = statusSelect ? statusSelect.value : "";
+        const commentsInput = container.querySelector('input[type="text"]');
+        let comments = commentsInput ? commentsInput.value : "";
+        const installInput = container.querySelector(`input[name="install-${key}"]`);
+        const replacementInput = container.querySelector(`input[name="replacement-${key}"]`);
+        const dimInput = container.querySelector(`input[name="rubberware-dimensions-${key}"]`);
+        const lengthInput = container.querySelector(`input[name="rubberware-length-${key}"]`);
+        const qtyInput = container.querySelector(`input[name="rubberware-quantity-${key}"]`);
+        const extra = {
+          installDate: installInput ? installInput.value : "",
+          replacementDueDate: replacementInput ? replacementInput.value : "",
+          rubberwareDimensions: dimInput ? dimInput.value : "",
+          rubberwareLength: lengthInput ? lengthInput.value : "",
+          rubberwareQuantity: qtyInput ? qtyInput.value : ""
+        };
+        // Append extra info to comments if needed
+        const extraStr = `Install Date: ${extra.installDate} | Replacement Due: ${extra.replacementDueDate} | Rubberware: ${extra.rubberwareDimensions} / ${extra.rubberwareLength} / ${extra.rubberwareQuantity}`;
+        if (extraStr.trim() !== "Install Date:  | Replacement Due:  | Rubberware:  /  / ") {
+          comments += "\n" + extraStr;
+        }
+        let imagesBase64 = [];
+        const fileInputs = container.querySelectorAll('input[type="file"]');
+        for (let fi of fileInputs) {
+          if (fi.files && fi.files[0]) {
+            const base64 = await convertFileToBase64(fi.files[0]);
+            imagesBase64.push(base64);
+          }
+        }
+        if (status === "attention-required" && imagesBase64.length > 0) {
+          const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+        }
+        checklistItemsData[key] = { status, comments, extra, imagesBase64 };
+      }));
+      data.checklistItems = checklistItemsData;
+      
+      record.formData = data;
+      await db.forms.put(record);
+    }
+    
+    function convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    // Save full form details (including checklist data) to Firebase Storage using key = dairyNumber + "schedule3"
+    async function saveFarmDetailsToFirebase(fd) {
+      const dairyNumber = fd.get("dairy-number") || "";
+      if (!dairyNumber) return;
+      const key = dairyNumber + "schedule3";
+      const data = Object.fromEntries(fd.entries());
+      const jsonBlob = new Blob([JSON.stringify(data)], { type: "application/json" });
+      try {
+        const storageRefFarm = storage.ref(`Agora Farm Details/${key}.json`);
+        await storageRefFarm.put(jsonBlob);
+        console.log("Form details JSON saved to Agora Farm Details folder.");
+      } catch (err) {
+        console.error("Error saving form details JSON:", err);
+      }
+    }
+    
+    async function uploadPendingPDFs() {
+      if (!navigator.onLine) return;
+      const queuedPDFs = await db.pdfQueue.toArray();
+      for (let pdfRecord of queuedPDFs) {
+        if(pdfRecord.target === "schedule3"){
+          try{
+            await uploadSinglePDFSchedule3(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
+            await db.pdfQueue.delete(pdfRecord.id);
+            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Schedule3.`);
+          } catch(err){ console.error("Retry PDF upload to Schedule3 failed:", err); }
+        }
+      }
+    }
+    
+    function uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob) {
+      return new Promise((resolve, reject) => {
+        const uploadRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}/${fileName}`);
+        const task = uploadRef.put(pdfBlob);
+        task.on("state_changed", null, err => reject(err), () => resolve());
+      });
+    }
+    
+    window.addEventListener("online", uploadPendingPDFs);
+    
+    async function generatePDF() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
+      const form = document.getElementById("schedule3-form");
+      const fd = new FormData(form);
+      await saveFarmDetailsToFirebase(fd);
+      
+      // Build an array of checklist items (with extra details) for the PDF
+      const checklistContainers = document.getElementById("checklist-items").children;
+      const itemsForPDF = [];
+      Array.from(checklistContainers).forEach(container => {
+        const labelEl = container.querySelector("label");
+        if (!labelEl) return;
+        const itemName = labelEl.textContent;
+        const status = container.querySelector("select")?.value || "";
+        const comments = container.querySelector("input[type='text']")?.value || "";
+        const installInput = container.querySelector(`input[name="install-${itemName}"]`);
+        const replacementInput = container.querySelector(`input[name="replacement-${itemName}"]`);
+        const dimInput = container.querySelector(`input[name="rubberware-dimensions-${itemName}"]`);
+        const lengthInput = container.querySelector(`input[name="rubberware-length-${itemName}"]`);
+        const qtyInput = container.querySelector(`input[name="rubberware-quantity-${itemName}"]`);
+        const extra = {
+          installDate: installInput ? installInput.value : "",
+          replacementDueDate: replacementInput ? replacementInput.value : "",
+          rubberwareDimensions: dimInput ? dimInput.value : "",
+          rubberwareLength: lengthInput ? lengthInput.value : "",
+          rubberwareQuantity: qtyInput ? qtyInput.value : ""
+        };
+        itemsForPDF.push({ itemName, status, comments, extra });
+      });
+      
+      // Prepare farm details table (as in second code)
+      const pageWidth = 595;
+      const leftColLabelWidth = pageWidth * 0.15;
+      const leftColValueWidth = pageWidth * 0.20;
+      const rightColLabelWidth = pageWidth * 0.20;
+      const rightColValueWidth = pageWidth * 0.30;
+      const farmDetailsRows = [
+        [
+          { content: "Dairy Company:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("dairy-company") || ""), styles: { fontStyle: "normal" } },
+          { content: "Visit Date:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("visit-date") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Dairy Number:", styles: { fontStyle: "bold" } },
+          { content: dairyNumber, styles: { fontStyle: "normal" } },
+          { content: "Farm Name:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("farm-name") || ""), styles: { fontStyle: "normal" } }
+        ]
+      ];
+      
+      Promise.all([]).then(() => {
+        finalizePDF();
+      });
+      
+      function finalizePDF() {
+        const pdf = new jsPDF("p", "pt", "a4");
+        let currentY = 40;
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        // Add logo at top (using same URL as form)
+        storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
+          fetch(url)
+            .then(res => res.blob())
+            .then(blob => convertFileToBase64(blob))
+            .then(logoBase64 => {
+              const img = new Image();
+              img.onload = function() {
+                const fixedLogoWidth = 150;
+                const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+                const x = (pageWidth - fixedLogoWidth) / 2;
+                pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
+                currentY = 40 + fixedLogoHeight + 20;
+                addFarmDetailsAndChecklist(pdf);
+              };
+              img.src = logoBase64;
+            })
+            .catch(err => {
+              console.error("Logo error:", err);
+              addFarmDetailsAndChecklist(pdf);
+            });
+        }).catch(err => {
+          console.error("Logo error:", err);
+          addFarmDetailsAndChecklist(pdf);
+        });
+        
+        function addFarmDetailsAndChecklist(pdf) {
+          // Farm Details Table
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Farm Details", "", "", ""]],
+            body: farmDetailsRows,
+            theme: 'grid',
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            columnStyles: {
+              0: { cellWidth: leftColLabelWidth },
+              1: { cellWidth: leftColValueWidth },
+              2: { cellWidth: rightColLabelWidth, halign: 'right' },
+              3: { cellWidth: rightColValueWidth, halign: 'right' }
+            },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          // Checklist Items Header
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Checklist Items:", 40, currentY);
+          currentY += 20;
+          
+          // For each checklist item, print details in its own block
+          itemsForPDF.forEach(item => {
+            // Check for page break
+            if (currentY + 60 > pageHeight) {
+              pdf.addPage();
+              currentY = 40;
+            }
+            // Item title
+            pdf.setFont("helvetica", "bold");
+            pdf.text(item.itemName, 40, currentY);
+            currentY += 15;
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`Status: ${item.status}`, 40, currentY);
+            currentY += 15;
+            pdf.text(`Comments: ${item.comments}`, 40, currentY);
+            currentY += 15;
+            // Extra details block
+            const extraLines = [];
+            if(item.extra.installDate) extraLines.push(`Install Date: ${item.extra.installDate}`);
+            if(item.extra.replacementDueDate) extraLines.push(`Replacement Due Date: ${item.extra.replacementDueDate}`);
+            if(item.extra.rubberwareDimensions) extraLines.push(`Dimensions: ${item.extra.rubberwareDimensions}`);
+            if(item.extra.rubberwareLength) extraLines.push(`Length: ${item.extra.rubberwareLength}`);
+            if(item.extra.rubberwareQuantity) extraLines.push(`Quantity: ${item.extra.rubberwareQuantity}`);
+            if(extraLines.length > 0) {
+              extraLines.forEach(line => {
+                if (currentY + 15 > pageHeight) {
+                  pdf.addPage();
+                  currentY = 40;
+                }
+                pdf.text(line, 50, currentY);
+                currentY += 15;
+              });
+            }
+            currentY += 10; // Space between items
+          });
+          
+          // Finalize: output PDF file
+          (async function(){
+            const pdfBlob = pdf.output("blob");
+            const fileName = `${dairyNumber}Schedule3.pdf`;
+            try {
+              await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora schedule 3 Customers folder successfully");
+            } catch(e) {
+              console.error("PDF upload failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "schedule3" });
+            }
+            db.forms.delete(dairyNumber);
+            pdf.save(fileName);
+            uploadPendingPDFs();
+            clearEntireForm();
+            location.reload();
+          })();
+        }
+      }
+    }
+    
+    /* VIEW RECORDS FUNCTIONS (from second code) */
+    function viewSchedule3Records() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("record-container").style.display = "block";
+      loadAllRecords();
+    }
+    
+    async function loadAllRecords() {
+      const recordList = document.getElementById("record-list");
+      recordList.innerHTML = "";
+      const storageRef = storage.ref("Agora schedule 3 Customers");
+      try {
+        const folderSnapshot = await storageRef.listAll();
+        if (folderSnapshot.prefixes.length > 0) {
+          folderSnapshot.prefixes.forEach(folderRef => {
+            const dairyNumber = folderRef.name;
+            if (dairyNumber.includes("Schedule3")) {
+              const link = document.createElement("a");
+              link.textContent = dairyNumber;
+              link.href = "#";
+              link.style.display = "block";
+              link.addEventListener("click", () => loadRecordFiles(dairyNumber));
+              recordList.appendChild(link);
+            }
+          });
+        }
+        if (folderSnapshot.items.length > 0) {
+          folderSnapshot.items.forEach(fileRef => {
+            if(fileRef.name.toLowerCase().includes("schedule3.pdf")){
+              const fileName = fileRef.name;
+              const link = document.createElement("a");
+              link.textContent = fileName;
+              link.href = "#";
+              link.style.display = "block";
+              link.addEventListener("click", async () => {
+                try {
+                  const url = await fileRef.getDownloadURL();
+                  window.open(url, "_blank");
+                } catch (err) {
+                  console.error("Error fetching file:", err);
+                }
+              });
+              recordList.appendChild(link);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching records:", error);
+      }
+    }
+    
+    async function loadRecordFiles(dairyNumber) {
+      const recordList = document.getElementById("record-list");
+      recordList.innerHTML = "";
+      const folderRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}`);
+      try {
+        const fileSnapshot = await folderRef.listAll();
+        fileSnapshot.items.forEach(fileRef => {
+          const fileName = fileRef.name;
+          const link = document.createElement("a");
+          link.textContent = fileName;
+          link.href = "#";
+          link.style.display = "block";
+          link.addEventListener("click", async () => {
+            try {
+              const url = await fileRef.getDownloadURL();
+              window.open(url, "_blank");
+            } catch (err) {
+              console.error("Error fetching file:", err);
+            }
+          });
+          recordList.appendChild(link);
+        });
+        const backBtn = document.createElement("button");
+        backBtn.textContent = "Back to Records";
+        backBtn.className = "back-button";
+        backBtn.addEventListener("click", loadAllRecords);
+        recordList.appendChild(backBtn);
+      } catch (err) {
+        console.error("Error fetching record files:", err);
+      }
+    }
+    
+    function filterRecords() {
+      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
+      const recordList = document.getElementById("record-list");
+      const links = recordList.getElementsByTagName("a");
+      for (let i = 0; i < links.length; i++) {
+        const txt = links[i].textContent || links[i].innerText;
+        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
+      }
+    }
+    
+    function goBack() {
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    document.addEventListener("DOMContentLoaded", async () => {
+      const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name"];
+      fieldsToAutoCap.forEach(autoCapitalizeInput);
+      await setupDairyCompanyDatalist();
+      createSchedule3ChecklistItems();
+      const form = document.getElementById("schedule3-form");
+      form.addEventListener("input", saveFormData);
+      form.addEventListener("change", saveFormData);
+      uploadPendingPDFs();
+    });
+  </script>
+</body>
+</html>
