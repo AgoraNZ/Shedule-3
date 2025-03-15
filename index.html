@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agora Schedule 3 – Change Dates</title>
+  <title>Agora Schedule 3 – Test 49.json</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
     body {
@@ -12,14 +12,14 @@
       padding: 20px;
     }
     .container {
-      max-width: 800px;
+      max-width: 600px;
       margin: auto;
       background: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-    h1, h2, h3 {
+    h1, h2 {
       text-align: center;
       color: #002B5C;
     }
@@ -30,17 +30,7 @@
       border-radius: 5px;
       background: #f8f9fa;
     }
-    .farm-box h4 {
-      margin-bottom: 10px;
-    }
-    .check-item {
-      margin-bottom: 10px;
-    }
-    .check-item label {
-      font-weight: bold;
-      display: block;
-    }
-    .back-button, .reload-btn {
+    .back-button {
       background: #002B5C;
       color: #fff;
       border: none;
@@ -48,39 +38,26 @@
       margin-top: 20px;
       cursor: pointer;
       border-radius: 5px;
-    }
-    .save-btn {
-      background: #FFD700;
-      border: none;
-      padding: 5px 10px;
-      margin-top: 10px;
-      cursor: pointer;
-      border-radius: 5px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
 <body>
-  <!-- Main Container -->
-  <div class="container" id="main-container">
-    <h1>Agora Schedule 3</h1>
-    <p>Click the button below to load the Schedule 3 farm details for change dates.</p>
-    <button class="reload-btn" onclick="showChangeDates()">Change Dates</button>
-  </div>
-
-  <!-- Change Dates Container (hidden by default) -->
-  <div class="container" id="change-dates-container" style="display:none;">
-    <h2>Schedule 3 Farm Details</h2>
-    <div id="farms-container">
-      <!-- Farm boxes will be added here -->
+  <div class="container" id="change-dates-container">
+    <h1>Test: Load 49.json</h1>
+    <div id="farm-box">
+      <p>Loading test file 49.json...</p>
     </div>
-    <button class="back-button" onclick="backToMain()">Back to Main</button>
+    <button class="back-button" onclick="alert('Back pressed')">Back</button>
   </div>
 
   <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Initialize Firebase – use your exact configuration
+    // Initialize Firebase (use your exact configuration)
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -92,133 +69,43 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // Show the Change Dates container and load farm details
-    function showChangeDates() {
-      document.getElementById("main-container").style.display = "none";
-      document.getElementById("change-dates-container").style.display = "block";
-      loadFarms();
-    }
-
-    // Return to Main container
-    function backToMain() {
-      document.getElementById("change-dates-container").style.display = "none";
-      document.getElementById("main-container").style.display = "block";
-    }
-
-    // Load all JSON files from the folder using list() with maxResults
-    async function loadFarms() {
-      const farmsContainer = document.getElementById("farms-container");
-      farmsContainer.innerHTML = "<p>Loading farm details...</p>";
-      
-      // Ensure the folder name exactly matches (case and spaces)
-      const folderRef = storage.ref("Agora schedule 3 farm details");
-      try {
-        const result = await folderRef.list({ maxResults: 100 });
-        console.log("list() returned", result.items.length, "file(s).");
-        farmsContainer.innerHTML = "";
-        if (result.items.length === 0) {
-          farmsContainer.innerHTML = "<p>No farm details found.</p>";
-          return;
-        }
-        // Process each file sequentially
-        for (const fileRef of result.items) {
-          console.log("Processing file:", fileRef.name);
-          try {
-            const url = await fileRef.getDownloadURL();
-            console.log("Download URL for", fileRef.name, ":", url);
-            const response = await fetch(url);
-            const data = await response.json();
-            // Use the dairyNumber field if available; if not, derive from file name
-            const dairyNum = data.dairyNumber || fileRef.name.replace(".json", "");
-            createFarmBox(dairyNum, data, fileRef.name);
-          } catch (e) {
-            console.error("Error processing file:", fileRef.name, e);
-          }
-        }
-        if (!farmsContainer.hasChildNodes()) {
-          farmsContainer.innerHTML = "<p>No farm details found.</p>";
-        }
-      } catch (error) {
-        console.error("Error listing files:", error);
-        farmsContainer.innerHTML = "<p>Error loading farm details.</p>";
-      }
-    }
-
-    // Create a farm box for a given JSON file
-    function createFarmBox(dairyNum, data, fileName) {
-      const farmsContainer = document.getElementById("farms-container");
-      const box = document.createElement("div");
-      box.className = "farm-box";
-      
-      // Header with basic info
-      let header = `<h4>${data.farmName || "Farm " + dairyNum}</h4>`;
-      header += `<p><strong>Dairy Number:</strong> ${dairyNum}</p>`;
-      header += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
-      box.innerHTML = header;
-      
-      // For each checklistExtra item, create editable fields
-      if (data.checklistExtra) {
-        for (const key in data.checklistExtra) {
-          const extra = data.checklistExtra[key];
-          const itemDiv = document.createElement("div");
-          itemDiv.className = "check-item";
-          itemDiv.innerHTML = `
-            <label>${key}</label>
-            <div class="mb-2">
-              <span>Install Date:</span>
-              <input type="date" class="form-control" value="${extra.installDate || ""}" data-key="${key}" data-field="installDate" data-file="${fileName}">
-            </div>
-            <div class="mb-2">
-              <span>Replacement Due:</span>
-              <input type="date" class="form-control" value="${extra.replacementDue || ""}" data-key="${key}" data-field="replacementDue" data-file="${fileName}">
-            </div>
-            <div class="mb-2">
-              <span>Rubberware Size:</span>
-              <input type="text" class="form-control" value="${extra.rubberwareSize || ""}" data-key="${key}" data-field="rubberwareSize" data-file="${fileName}">
-            </div>
-          `;
-          box.appendChild(itemDiv);
-        }
-      } else {
-        box.innerHTML += "<p>No extra checklist details.</p>";
-      }
-      
-      // Save Changes button for this farm box
-      const saveBtn = document.createElement("button");
-      saveBtn.className = "save-btn";
-      saveBtn.textContent = "Save Changes";
-      saveBtn.onclick = () => saveFarmBox(fileName);
-      box.appendChild(saveBtn);
-      
-      farmsContainer.appendChild(box);
-    }
-
-    // Save updated checklistExtra data back to Firebase
-    async function saveFarmBox(fileName) {
-      const inputs = document.querySelectorAll(`[data-file="${fileName}"]`);
-      let updatedExtra = {};
-      inputs.forEach(input => {
-        const key = input.dataset.key;
-        const field = input.dataset.field;
-        if (!updatedExtra[key]) updatedExtra[key] = {};
-        updatedExtra[key][field] = input.value;
-      });
-      console.log("Saving changes for", fileName, updatedExtra);
-      
-      const fileRef = storage.ref("Agora schedule 3 farm details/" + fileName);
+    // Function to load the file "49.json" directly
+    async function loadTestFile() {
+      const farmBox = document.getElementById("farm-box");
+      farmBox.innerHTML = "<p>Loading test file 49.json...</p>";
+      // Direct reference to the file "49.json"
+      const fileRef = storage.ref("Agora schedule 3 farm details/49.json");
       try {
         const url = await fileRef.getDownloadURL();
+        console.log("Test file URL:", url);
         const response = await fetch(url);
         const data = await response.json();
-        data.checklistExtra = updatedExtra;
-        const newBlob = new Blob([JSON.stringify(data)], { type: "application/json" });
-        await fileRef.put(newBlob);
-        alert("Changes saved for dairy " + fileName.replace(".json", ""));
+        console.log("Data from 49.json:", data);
+        let html = `<div class="farm-box">`;
+        html += `<h2>${data.farmName || "Farm 49"}</h2>`;
+        html += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
+        html += `<p><strong>Address:</strong> ${data.address || "N/A"}</p>`;
+        html += `<p><strong>Customer Name:</strong> ${data.customerName || "N/A"}</p>`;
+        html += `<p><strong>Region:</strong> ${data.region || "N/A"}</p>`;
+        html += `<p><strong>Island:</strong> ${data.island || "N/A"}</p>`;
+        html += `<h4>Checklist Extra:</h4>`;
+        if(data.checklistExtra) {
+          for(const key in data.checklistExtra) {
+            const extra = data.checklistExtra[key];
+            html += `<p><strong>${key}:</strong> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}</p>`;
+          }
+        } else {
+          html += "<p>No extra details found.</p>";
+        }
+        html += `</div>`;
+        farmBox.innerHTML = html;
       } catch (error) {
-        console.error("Error saving changes for", fileName, error);
-        alert("Failed to save changes for dairy " + fileName.replace(".json", ""));
+        console.error("Error loading test file:", error);
+        farmBox.innerHTML = `<p>Error loading test file: ${error.message}</p>`;
       }
     }
+
+    loadTestFile();
   </script>
 </body>
 </html>
