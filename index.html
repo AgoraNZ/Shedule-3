@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Test: Load 49.json Directly</title>
+  <title>Agora Schedule 3 – Change Dates (REST API Listing)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
     body {
@@ -12,53 +12,122 @@
       padding: 20px;
     }
     .container {
-      max-width: 600px;
+      max-width: 800px;
       margin: auto;
       background: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-    h1, h2 {
+    h1, h2, h3 {
       text-align: center;
       color: #002B5C;
     }
-    pre {
-      background: #f8f9fa;
-      padding: 10px;
+    .farm-box {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
       border-radius: 5px;
-      overflow-x: auto;
+      background: #f8f9fa;
+    }
+    .back-button, .reload-btn {
+      background: #002B5C;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 20px;
+      cursor: pointer;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Test: Load 49.json Directly</h1>
-    <p>This page directly fetches the file from Firebase Storage using its public URL.</p>
-    <button id="load-btn" class="btn btn-primary">Load 49.json</button>
-    <h2>File Contents</h2>
-    <pre id="output">Click the button above to load the file.</pre>
+  <div class="container" id="main-container">
+    <h1>Agora Schedule 3</h1>
+    <button class="reload-btn" onclick="showChangeDates()">Change Dates</button>
   </div>
-
+  
+  <div class="container" id="change-dates-container" style="display:none;">
+    <h2>Schedule 3 Farm Details</h2>
+    <div id="farms-container">
+      <!-- Farm boxes will be added here -->
+    </div>
+    <button class="back-button" onclick="backToMain()">Back to Main</button>
+  </div>
+  
   <script>
-    document.getElementById("load-btn").addEventListener("click", async () => {
-      const output = document.getElementById("output");
-      output.textContent = "Loading...";
-      // Use the exact URL you provided (adjust the token if necessary)
-      const fileURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20schedule%203%20farm%20details%2F49.json?alt=media&token=8e1a4ebf-153c-4662-b981-7d2e5f5a5bf4";
+    // Show Change Dates container and load files via REST API
+    function showChangeDates() {
+      document.getElementById("main-container").style.display = "none";
+      document.getElementById("change-dates-container").style.display = "block";
+      loadFarmsREST();
+    }
+    
+    function backToMain() {
+      document.getElementById("change-dates-container").style.display = "none";
+      document.getElementById("main-container").style.display = "block";
+    }
+    
+    // Use the Firebase Storage REST API to list files in the folder.
+    async function loadFarmsREST() {
+      const farmsContainer = document.getElementById("farms-container");
+      farmsContainer.innerHTML = "<p>Loading farm details...</p>";
+      
+      // Construct the URL for listing files. 
+      // Replace spaces with %20 and ensure the prefix is exactly as in your storage.
+      const listURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o?delimiter=/&prefix=Agora%20schedule%203%20farm%20details%2F";
+      console.log("Fetching list from:", listURL);
       try {
-        const response = await fetch(fileURL);
-        if (!response.ok) {
-          throw new Error("HTTP error " + response.status);
+        const res = await fetch(listURL);
+        const data = await res.json();
+        console.log("List API returned:", data);
+        farmsContainer.innerHTML = "";
+        if (!data.items || data.items.length === 0) {
+          farmsContainer.innerHTML = "<p>No farm details found.</p>";
+          return;
         }
-        const data = await response.json();
-        console.log("Loaded data:", data);
-        output.textContent = JSON.stringify(data, null, 2);
+        for (const item of data.items) {
+          // item.name is URL-encoded. Decode it.
+          const decodedName = decodeURIComponent(item.name);
+          console.log("Found file:", decodedName);
+          // Fetch the file directly.
+          const fileURL = `https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/${item.name}?alt=media`;
+          try {
+            const fileRes = await fetch(fileURL);
+            const fileData = await fileRes.json();
+            const dairyNum = fileData.dairyNumber || decodedName.replace("Agora schedule 3 farm details/", "").replace(".json", "");
+            createFarmBox(dairyNum, fileData, decodedName.replace("Agora schedule 3 farm details/", ""));
+          } catch (e) {
+            console.error("Error fetching file data for", decodedName, e);
+          }
+        }
       } catch (error) {
-        console.error("Error fetching file:", error);
-        output.textContent = "Error fetching file: " + error.message;
+        console.error("Error listing files via REST API:", error);
+        farmsContainer.innerHTML = "<p>Error loading farm details.</p>";
       }
-    });
+    }
+    
+    // Create a farm box with the data
+    function createFarmBox(dairyNum, data, fileName) {
+      const farmsContainer = document.getElementById("farms-container");
+      const box = document.createElement("div");
+      box.className = "farm-box";
+      
+      let html = `<h3>${data.farmName || "Farm " + dairyNum}</h3>`;
+      html += `<p><strong>Dairy Number:</strong> ${dairyNum}</p>`;
+      html += `<p><strong>Dairy Company:</strong> ${data.dairyCompany || "N/A"}</p>`;
+      html += `<h4>Checklist Extra:</h4>`;
+      if(data.checklistExtra) {
+        for(const key in data.checklistExtra) {
+          const extra = data.checklistExtra[key];
+          html += `<p><strong>${key}:</strong> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}</p>`;
+        }
+      } else {
+        html += "<p>No extra details.</p>";
+      }
+      box.innerHTML = html;
+      farmsContainer.appendChild(box);
+    }
   </script>
 </body>
 </html>
