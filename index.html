@@ -27,22 +27,38 @@
       margin-bottom: 10px;
       padding: 5px;
     }
-    .detail-box { border: 1px dashed #888; padding: 10px; margin-bottom: 10px; }
-    .checklist-item { border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; }
+    .detail-box {
+      border: 1px dashed #888;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .checklist-item {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
     .checklist-extra { margin-top: 5px; }
     .back-button { background-color: #002B5C; color: #fff; }
-    .all-farms-container table { width: 100%; border-collapse: collapse; }
-    .all-farms-container th, .all-farms-container td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    .all-farms-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .all-farms-container th, .all-farms-container td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
     .all-farms-container th { background: #002B5C; color: #fff; }
+    .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
   </style>
 </head>
 <body>
-  <!-- FORM CONTAINER -->
+  <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" style="display: block; margin: 0 auto 20px; width:250px;" alt="Logo" />
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" style="display: block; margin: 0 auto 20px; width:250px;" />
     <h1>Agora Schedule 3 Form</h1>
     <form id="schedule3-form">
-      <!-- Farm Details -->
+      <!-- Farm Details Section -->
       <h2>Farm Details</h2>
       <label for="dairy-number">Dairy Number:</label>
       <input type="text" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="true" />
@@ -90,9 +106,11 @@
         <label for="replacement-due">Replacement Due Date:</label>
         <input type="date" id="replacement-due" name="replacement-due" />
       </div>
-      <!-- Checklist Items -->
+
+      <!-- Checklist Items Section -->
       <h2>Checklist Items</h2>
       <div id="checklist-items"></div>
+
       <!-- Buttons -->
       <div style="text-align: center;">
         <button type="button" onclick="generatePDFSchedule3()">Generate PDF</button>
@@ -118,7 +136,7 @@
     <button class="back-button" onclick="backToFormSchedule3()">Back to Form</button>
   </div>
 
-  <!-- Firebase and other scripts -->
+  <!-- Firebase and Other Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
@@ -126,15 +144,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    // Firebase configuration – update with your keys
+    // Firebase configuration (using your original keys)
     const { jsPDF } = window.jspdf;
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
+      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
       projectId: "dairy-farm-record-system",
       storageBucket: "dairy-farm-record-system.appspot.com",
       messagingSenderId: "422124188212",
-      appId: "YOUR_APP_ID"
+      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
     };
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
@@ -149,9 +167,9 @@
     });
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(reg => {
-        console.log('Service Worker registered:', reg.scope);
-      }).catch(err => console.error('SW registration failed:', err));
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
     }
 
     // Utility functions
@@ -197,7 +215,6 @@
         const response = await fetch(url);
         if (!response.ok) throw new Error("Network response not ok");
         const data = await response.json();
-        // Populate fields if data exists
         document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || "");
         document.getElementById('address').value = toTitleCase(data.address || "");
         document.getElementById('customer-name').value = toTitleCase(data.customerName || "");
@@ -210,7 +227,6 @@
         console.log("No saved farm details found:", error);
       }
     }
-
     async function checkOrCreateSchedule3Record() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
@@ -220,13 +236,12 @@
         await db.schedule3Forms.put(record);
       }
     }
-
     async function handleDairyNumberBlur() {
       await fetchFarmDetailsSchedule3();
       await checkOrCreateSchedule3Record();
     }
 
-    // Create extended checklist items with extra fields for each item
+    // Create extended checklist items with extra fields
     function createChecklistItemsSchedule3() {
       const items = [
         "Cluster to milk line", 
@@ -265,7 +280,6 @@
         commentsInput.name = `comments-${sanitized}`;
         commentsInput.placeholder = "Comments";
         itemContainer.appendChild(commentsInput);
-        // File inputs for photos (if attention required)
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -275,14 +289,12 @@
           preview.classList.add("image-preview");
           itemContainer.appendChild(preview);
         }
-        // Extra input for general Rubberware Details
         const rubberwareInput = document.createElement("input");
         rubberwareInput.type = "text";
         rubberwareInput.classList.add("form-control");
         rubberwareInput.name = `rubberware-${sanitized}`;
         rubberwareInput.placeholder = "General Rubberware Details";
         itemContainer.appendChild(rubberwareInput);
-        // Extra fields: Quantity, Size, Item Install Date, Expiry Date
         const extraDiv = document.createElement("div");
         extraDiv.classList.add("checklist-extra");
         extraDiv.innerHTML = `
@@ -316,7 +328,6 @@
       const form = document.getElementById("schedule3-form");
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      // Process checklist items
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistItemsData = {};
       for (let container of checklistContainers) {
@@ -343,7 +354,7 @@
       await db.schedule3Forms.put(record);
     }
 
-    // Convert file to Base64 string
+    // Convert file to Base64
     function convertFileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -354,7 +365,6 @@
     }
 
     // Save farm details JSON (including checklist extra fields) to Firebase Storage.
-    // We assume that the saved JSON includes a property checklistItems that is an array for display.
     async function saveSchedule3FarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -368,7 +378,6 @@
         installDate: fd.get("install-date") || "",
         replacementDue: fd.get("replacement-due") || ""
       };
-      // Get checklist extra fields from Dexie record if available
       const record = await db.schedule3Forms.get(dairyNumber);
       if (record && record.formData && record.formData.checklistItems) {
         const checklistForDisplay = [];
@@ -394,7 +403,7 @@
       }
     }
 
-    // PDF upload functions (store PDF in "Agora schedule 3 Customers")
+    // PDF upload functions
     async function uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob) {
       return new Promise((resolve, reject) => {
         const uploadRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}/${fileName}`);
@@ -429,8 +438,6 @@
       // Build a table for checklist extra fields
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistData = [];
-      let imagePromises = [];
-      let photoStore = [];
       for (let item of checklistContainers) {
         const itemName = item.querySelector("label").textContent;
         const sanitized = itemName.replace(/\s+/g, "_").toLowerCase();
@@ -440,7 +447,6 @@
         const expiryDate = item.querySelector(`input[name="expiry-date-${sanitized}"]`)?.value || "";
         checklistData.push([itemName, size, quantity, itemInstall, expiryDate]);
       }
-      // Basic farm details table
       const farmDetailsRows = [
         [
           { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -467,9 +473,7 @@
           { content: "See checklist items", styles: { fontStyle: "normal" } }
         ]
       ];
-      
-      Promise.all(imagePromises).then(() => { finalizePDF(); }).catch(() => { finalizePDF(); });
-      
+      Promise.all([]).then(() => { finalizePDF(); }).catch(() => { finalizePDF(); });
       function finalizePDF() {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
@@ -494,7 +498,6 @@
             })
             .catch(err => { console.error("Logo error:", err); addFarmDetailsAndTables(pdf); });
         }).catch(err => { console.error("Logo error:", err); addFarmDetailsAndTables(pdf); });
-        
         function addFarmDetailsAndTables(pdf) {
           pdf.autoTable({
             startY: currentY,
@@ -528,7 +531,7 @@
             try {
               await uploadSinglePDFSchedule3(fd.get("dairy-number"), fileName, pdfBlob);
               console.log("PDF uploaded successfully");
-            } catch (e) {
+            } catch(e) {
               console.error("PDF upload failed:", e);
               db.pdfQueue.add({ dairyNumber: fd.get("dairy-number"), fileName, pdfBlob, uploaded: false, target: "schedule3" });
             }
@@ -542,7 +545,7 @@
       }
     }
 
-    // VIEW RECORDS
+    // VIEW RECORDS FUNCTIONS
     function viewRecordsSchedule3() {
       document.getElementById("form-container").style.display = "none";
       document.getElementById("all-farms-container").style.display = "none";
@@ -620,6 +623,19 @@
         console.error("Error fetching record files:", err);
       }
     }
+    function filterRecordsSchedule3() {
+      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
+      const recordList = document.getElementById("record-list");
+      const links = recordList.getElementsByTagName("a");
+      for (let i = 0; i < links.length; i++) {
+        const txt = links[i].textContent || links[i].innerText;
+        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
+      }
+    }
+    function goBackSchedule3() {
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
 
     // ALL FARMS VIEW: Build a table with columns: Dairy Number, Item Name, Item Size, Item Quantity, Item Install Date, Expiry Date
     async function loadAllFarms() {
@@ -660,7 +676,9 @@
                 itemInstall: details.itemInstall || "",
                 expiryDate: details.expiryDate || ""
               }));
-            } else { return []; }
+            } else {
+              return [];
+            }
           } catch (e) {
             console.error("Error loading farm details:", e);
             return [];
@@ -705,19 +723,6 @@
     }
     function backToFormSchedule3() {
       document.getElementById("all-farms-container").style.display = "none";
-      document.getElementById("form-container").style.display = "block";
-    }
-    function filterRecordsSchedule3() {
-      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
-      const recordList = document.getElementById("record-list");
-      const links = recordList.getElementsByTagName("a");
-      for (let i = 0; i < links.length; i++) {
-        const txt = links[i].textContent || links[i].innerText;
-        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
-      }
-    }
-    function goBackSchedule3() {
-      document.getElementById("record-container").style.display = "none";
       document.getElementById("form-container").style.display = "block";
     }
     document.addEventListener("DOMContentLoaded", async () => {
