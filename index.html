@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <!-- META & STYLES -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agora Schedule 3 Form</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
   <style>
     /* Overall styling */
     body {
@@ -26,7 +26,7 @@
       margin: 20px auto;
     }
     .record-container, .all-farms-container { background-color: #fff; }
-    h1, h2, h3, h4 { text-align: center; }
+    h1, h2, h3 { text-align: center; }
     h1, h2 { color: #333; }
     h3 { color: #002B5C; margin-top: 20px; }
     label { color: #000; margin-top: 10px; }
@@ -60,8 +60,16 @@
       background: #f1f1f1;
     }
     .schedule3-extra label { font-weight: bold; font-size: 0.9em; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
     th { background-color: #002B5C; color: #fff; }
     .version { text-align: center; margin-top: 20px; font-size: 12px; color: #333; }
   </style>
@@ -69,24 +77,24 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Logo -->
+    <!-- Logo (same URL as your working reporting form) -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
-         alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
+         alt="Logo" class="logo" style="display: block; margin: 0 auto 20px; width: 250px;" />
     <h1>Agora Schedule 3 Form</h1>
     <form id="schedule3-form">
       <!-- Farm Details Section -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <!-- When blurred, we append "schedule3" to the dairy number -->
-        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <!-- On blur, we call handleDairyNumberBlur() -->
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false" />
         <label for="dairy-company">Dairy Company:</label>
-        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false" />
         <datalist id="dairy-company-list"></datalist>
         <label for="address">Address:</label>
-        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="false" />
         <label for="customer-name">Customer Name:</label>
-        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="on" spellcheck="false" />
         <label for="region">Region:</label>
         <select id="region" name="region" class="form-select">
           <option value="northland">Northland</option>
@@ -106,17 +114,17 @@
           <option value="southland">Southland</option>
         </select>
         <label for="farm-name">Farm Name:</label>
-        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="on" spellcheck="false" />
         <label for="island">Island:</label>
         <select id="island" name="island" class="form-select">
           <option value="north-island">North Island</option>
           <option value="south-island">South Island</option>
         </select>
         <label for="visit-date">Visit Date:</label>
-        <input type="date" class="form-control" id="visit-date" name="visit-date">
+        <input type="date" class="form-control" id="visit-date" name="visit-date" />
       </div>
       
-      <!-- Checklist Section (Schedule3 Items) -->
+      <!-- Checklist Section (Schedule 3 Items) -->
       <div class="section mb-4">
         <h2>Checklist Items</h2>
         <div id="checklist-items"></div>
@@ -136,7 +144,7 @@
   <div id="record-container" class="record-container" style="display: none;">
     <h2>All Schedule 3 Records</h2>
     <div class="search-container">
-      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecords()">
+      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecords()" />
     </div>
     <div id="record-list" class="record-list"></div>
     <button class="back-button" onclick="goBack()">Back to Form</button>
@@ -149,7 +157,7 @@
     <button class="back-button" onclick="backToForm()">Back to Form</button>
   </div>
   
-  <!-- SCRIPTS: Firebase, Dexie, jsPDF & AutoTable libraries -->
+  <!-- SCRIPTS: Firebase, Dexie, jsPDF & jsPDF-AutoTable libraries -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
@@ -205,12 +213,10 @@
       ];
       const userCompanies = await db.dairyCompanies.toArray();
       const allCompanies = [...defaultCompanies];
-      userCompanies.forEach(u => {
-        if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); }
-      });
+      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
       const datalist = document.getElementById('dairy-company-list');
       datalist.innerHTML = "";
-      allCompanies.forEach(c => {
+      allCompanies.forEach(c => { 
         const opt = document.createElement('option');
         opt.value = c;
         datalist.appendChild(opt);
@@ -229,11 +235,11 @@
       });
     }
     
-    // When a dairy number is entered, append "schedule3" and fetch the JSON file
+    // Auto-populate farm details – note the key now uses the suffix "schedule3"
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
-      const key = dairyNumber + "schedule3";  // Append suffix to match your file name
+      const key = dairyNumber + "schedule3";
       const storageRef = storage.ref(`Agora Farm Details/${key}.json`);
       try {
         const url = await storageRef.getDownloadURL();
@@ -270,8 +276,9 @@
       await checkOrCreateFormRecord();
     }
     
-    /* Create Schedule3 Checklist Items with extra fields */
+    /* Create Schedule 3 Checklist Items */
     function createSchedule3ChecklistItems() {
+      // Schedule 3 checklist items
       const checklistItems = [
         "Cluster to milk line",
         "Cluster short Pulse tubes",
@@ -310,7 +317,7 @@
         commentsInput.setAttribute("spellcheck", "true");
         commentsInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(commentsInput);
-        // Add file inputs and preview images (initially hidden)
+        // Two file inputs with preview images (initially hidden)
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -373,7 +380,7 @@
       });
     }
     
-    /* LOAD, CLEAR & SAVE Data for Schedule3 */
+    /* LOAD, CLEAR & SAVE Data */
     function loadFormDataFromRecord(record) {
       const data = record.formData || {};
       document.getElementById("dairy-number").value = data["dairy-number"] || record.dairyNumber;
@@ -496,7 +503,7 @@
       });
     }
     
-    // Save basic farm details to Firebase Storage using the key with suffix "schedule3"
+    // Save farm details to Firebase Storage using key = dairyNumber + "schedule3"
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -509,7 +516,6 @@
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || "",
         visitDate: fd.get("visit-date") || ""
-        // To include checklist extra data in the JSON, merge here as needed.
       };
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
@@ -563,15 +569,6 @@
         const itemName = labelEl.textContent;
         const status = item.querySelector("select")?.value || "";
         let comments = item.querySelector("input[type='text']")?.value || "";
-        const install = item.querySelector(`input[name="install-${itemName}"]`)?.value || "";
-        const replacement = item.querySelector(`input[name="replacement-${itemName}"]`)?.value || "";
-        const dimensions = item.querySelector(`input[name="rubberware-dimensions-${itemName}"]`)?.value || "";
-        const length = item.querySelector(`input[name="rubberware-length-${itemName}"]`)?.value || "";
-        const quantity = item.querySelector(`input[name="rubberware-quantity-${itemName}"]`)?.value || "";
-        const extraStr = `Install Date: ${install} | Replacement Due: ${replacement} | Rubberware: ${dimensions} / ${length} / ${quantity}`;
-        if (extraStr.trim() !== "Install Date:  | Replacement Due:  | Rubberware:  /  / ") {
-          comments += "\n" + extraStr;
-        }
         const fileInputs = item.querySelectorAll("input[type='file']");
         let images = [];
         Array.from(fileInputs).forEach(inp => {
@@ -620,6 +617,7 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
+        // Fetch logo – using same URL as in the form
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -723,11 +721,11 @@
             const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
             const fileName = `${dairyNumber}-schedule3-${formattedVisitDate}.pdf`;
             try {
-              await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
-              console.log("PDF uploaded to Agora schedule 3 Customers folder successfully");
+              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora Customers folder successfully");
             } catch(e) {
-              console.error("PDF upload failed:", e);
-              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "schedule3" });
+              console.error("PDF upload to Agora Customers folder failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
             }
             db.forms.delete(dairyNumber);
             pdf.save(fileName);
@@ -750,9 +748,10 @@
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      const storageRef = storage.ref("Agora schedule 3 Customers");
+      const storageRef = storage.ref("Agora Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
+        // List subfolders (each dairy-number folder)
         if (folderSnapshot.prefixes.length > 0) {
           folderSnapshot.prefixes.forEach(folderRef => {
             const dairyNumber = folderRef.name;
@@ -764,6 +763,7 @@
             recordList.appendChild(link);
           });
         }
+        // Also list files stored directly in "Agora Customers"
         if (folderSnapshot.items.length > 0) {
           folderSnapshot.items.forEach(fileRef => {
             const fileName = fileRef.name;
@@ -790,7 +790,7 @@
     async function loadRecordFiles(dairyNumber) {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      const folderRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}`);
+      const folderRef = storage.ref(`Agora Customers/${dairyNumber}`);
       try {
         const fileSnapshot = await folderRef.listAll();
         fileSnapshot.items.forEach(fileRef => {
@@ -836,14 +836,13 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    // ALL FARMS view: List only JSON files in "Agora Farm Details" that end with "schedule3.json"
+    // ALL FARMS view: list only JSON files in "Agora Farm Details" that end with "schedule3.json"
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
       try {
         const storageRef = storage.ref("Agora Farm Details");
         const listResult = await storageRef.listAll();
-        // Filter files ending with "schedule3.json"
         const schedule3Files = listResult.items.filter(item =>
           item.name.toLowerCase().endsWith("schedule3.json")
         );
@@ -869,7 +868,7 @@
             const url = await fileRef.getDownloadURL();
             const response = await fetch(url);
             const json = await response.json();
-            // Remove the suffix "schedule3.json" to get the dairy number
+            // Remove the "schedule3.json" suffix to display the dairy number
             const dairyNumber = fileRef.name.replace(/schedule3\.json$/i, "");
             const tr = document.createElement("tr");
             tr.innerHTML = `
