@@ -75,16 +75,19 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
+         alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Schedule 3 Form</h1>
     <form id="schedule3-form">
       <!-- Farm Details Section (same as main form) -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" 
+               autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
-        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" 
+               list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
         <datalist id="dairy-company-list"></datalist>
         <label for="address">Address:</label>
         <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="false">
@@ -173,10 +176,10 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const firestore = firebase.firestore();
-    // For schedule3 forms, we store records with key = dairyNumber + "schedule3"
+    // For schedule3, we use a key of dairyNumber + "schedule3"
     const db = new Dexie("OfflineData");
     db.version(5).stores({
-      forms: "dairyNumber",  // For schedule3, dairyNumber includes "schedule3" suffix.
+      forms: "dairyNumber",
       dairyCompanies: "++id, name",
       pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
     });
@@ -229,13 +232,12 @@
       });
     }
     
-    // Modified to fetch from schedule3 JSON file.
+    // For Schedule3, we fetch farm details from Firebase Storage using a file named dairyNumber + "schedule3.json"
     async function fetchFarmDetails() {
       const dairyNumberRaw = document.getElementById('dairy-number').value.trim();
       if (!dairyNumberRaw) return;
-      // For schedule3, key is dairyNumber + "schedule3"
-      const dairyNumber = dairyNumberRaw + "schedule3";
-      const storageRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
+      const key = dairyNumberRaw + "schedule3";
+      const storageRef = storage.ref(`Agora Farm Details/${key}.json`);
       try {
         const url = await storageRef.getDownloadURL();
         const response = await fetch(url);
@@ -249,7 +251,6 @@
           document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
           document.getElementById('island').value = data.island || '';
           document.getElementById('visit-date').value = data.visitDate || "";
-          // For schedule3 extra data stored at farm level if needed.
         }
       } catch (error) {
         console.log('No farm details found or error:', error);
@@ -259,7 +260,6 @@
     async function checkOrCreateFormRecord() {
       const dairyNumberRaw = document.getElementById('dairy-number').value.trim();
       if (!dairyNumberRaw) return;
-      // Use key dairyNumber + "schedule3"
       const key = dairyNumberRaw + "schedule3";
       let record = await db.forms.get(key);
       if (!record) {
@@ -469,7 +469,7 @@
         const status = statusSelect ? statusSelect.value : "";
         const commentsInput = container.querySelector('input[type="text"]');
         let comments = commentsInput ? commentsInput.value : "";
-        // Read extra fields for this item:
+        // Get extra info for this item:
         const installInput = container.querySelector(`input[name="install-${key}"]`);
         const replacementInput = container.querySelector(`input[name="replacement-${key}"]`);
         const dimInput = container.querySelector(`input[name="rubberware-dimensions-${key}"]`);
@@ -484,8 +484,9 @@
         };
         // Append extra info as a second line in comments (for PDF)
         const extraStr = `Install Date: ${extra.installDate} | Replacement Due: ${extra.replacementDueDate} | Rubberware: ${extra.rubberwareDimensions} / ${extra.rubberwareLength} / ${extra.rubberwareQuantity}`;
-        
-        // Process file inputs for photos
+        if (extraStr.trim() !== "Install Date:  | Replacement Due:  | Rubberware:  /  / ") {
+          comments += "\n" + extraStr;
+        }
         let imagesBase64 = [];
         const fileInputs = container.querySelectorAll('input[type="file"]');
         for (let fi of fileInputs) {
@@ -588,7 +589,6 @@
         const length = item.querySelector(`input[name="rubberware-length-${itemName}"]`)?.value || "";
         const quantity = item.querySelector(`input[name="rubberware-quantity-${itemName}"]`)?.value || "";
         const extraStr = `Install Date: ${install} | Replacement Due: ${replacement} | Rubberware: ${dimensions} / ${length} / ${quantity}`;
-        // Append extra info to comments (on a new line)
         if (extraStr.trim() !== "Install Date:  | Replacement Due:  | Rubberware:  /  / ") {
           comments += "\n" + extraStr;
         }
@@ -640,7 +640,7 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Get the logo from Firebase storage
+        // Fetch logo from Firebase (same as main form)
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -768,6 +768,57 @@
       loadAllRecords();
     }
     
+    // NEW: Load All Farms by listing Firebase Storage files in "Agora Farm Details" whose names end with "schedule3.json"
+    async function loadAllFarms() {
+      const farmsGrid = document.getElementById("farms-grid");
+      farmsGrid.innerHTML = "";
+      try {
+        const storageRef = storage.ref("Agora Farm Details");
+        const listResult = await storageRef.listAll();
+        // Filter items (files) that end with "schedule3.json"
+        const schedule3Files = listResult.items.filter(item => item.name.endsWith("schedule3.json"));
+        if (schedule3Files.length === 0) {
+          farmsGrid.textContent = "No farm records found.";
+          return;
+        }
+        // Create a table to display the farm details
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        thead.innerHTML = `<tr>
+          <th>Dairy Number</th>
+          <th>Farm Name</th>
+          <th>Dairy Company</th>
+          <th>Visit Date</th>
+        </tr>`;
+        table.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        // For each file, fetch its JSON content
+        await Promise.all(schedule3Files.map(async (fileRef) => {
+          try {
+            const url = await fileRef.getDownloadURL();
+            const res = await fetch(url);
+            const json = await res.json();
+            // Extract dairy number from filename (e.g. "49schedule3.json" -> "49")
+            const dairyNumber = fileRef.name.replace("schedule3.json", "");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${dairyNumber}</td>
+              <td>${json.farmName || ""}</td>
+              <td>${json.dairyCompany || ""}</td>
+              <td>${json.visitDate || ""}</td>
+            `;
+            tbody.appendChild(tr);
+          } catch (err) {
+            console.error("Error loading farm details from", fileRef.name, err);
+          }
+        }));
+        table.appendChild(tbody);
+        farmsGrid.appendChild(table);
+      } catch (error) {
+        console.error("Error loading all farms:", error);
+      }
+    }
+    
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
@@ -864,46 +915,6 @@
       document.getElementById("record-container").style.display = "none";
       document.getElementById("all-farms-container").style.display = "block";
       loadAllFarms();
-    }
-    
-    async function loadAllFarms() {
-      const farmsGrid = document.getElementById("farms-grid");
-      farmsGrid.innerHTML = "";
-      try {
-        // Only include schedule3 records stored in Dexie.
-        const allForms = await db.forms.toArray();
-        const schedule3Forms = allForms.filter(rec => rec.dairyNumber.endsWith("schedule3"));
-        if (schedule3Forms.length === 0) {
-          farmsGrid.textContent = "No farm records found.";
-          return;
-        }
-        // Create a tidy table for displaying each farm's details.
-        const table = document.createElement("table");
-        const thead = document.createElement("thead");
-        thead.innerHTML = `<tr>
-          <th>Dairy Number</th>
-          <th>Farm Name</th>
-          <th>Dairy Company</th>
-          <th>Visit Date</th>
-        </tr>`;
-        table.appendChild(thead);
-        const tbody = document.createElement("tbody");
-        schedule3Forms.forEach(record => {
-          const data = record.formData || {};
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${record.dairyNumber.replace("schedule3", "")}</td>
-            <td>${data["farm-name"] || ""}</td>
-            <td>${data["dairy-company"] || ""}</td>
-            <td>${data["visit-date"] || ""}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        farmsGrid.appendChild(table);
-      } catch (err) {
-        console.error("Error loading farms:", err);
-      }
     }
     
     function backToForm() {
