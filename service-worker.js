@@ -1,18 +1,15 @@
-const CACHE_NAME = 'agora-app-cache-v23';
- const urlsToCache = [
-  '/', // Adjust if your entry point is not at the root.
+const CACHE_NAME = 'agora-schedule3-cache-v1';
+const urlsToCache = [
+  '/',
   '/index.html',
-  '/service-worker.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css',
-  'https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js',
-  'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/dexie/3.0.3/dexie.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
+  // Add any additional files you want to cache, such as:
+  // '/styles.css',
+  // '/script.js',
+  // external libraries may not be cached if they update frequently
 ];
 
 self.addEventListener('install', event => {
+  // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -22,23 +19,33 @@ self.addEventListener('install', event => {
   );
 });
 
+// Activate event – clean up old caches if needed
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME) {
+            console.log('Deleting old cache:', name);
+            return caches.delete(name);
+          }
+        })
       );
     })
   );
 });
 
+// Fetch event – serve cached assets if available
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Return cached response if found; otherwise, fetch from network.
-        return response || fetch(event.request);
+        // Cache hit - return response
+        if (response) {
+          return response;
+        }
+        // Not in cache - fetch from network
+        return fetch(event.request);
       })
   );
 });
