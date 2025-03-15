@@ -35,7 +35,8 @@
     h3 { color: #002B5C; margin-top: 20px; }
     h4 { color: #555; margin-top: 10px; }
     label { color: #000; margin-top: 10px; }
-    input[type="text"], input[type="date"], select {
+    /* Enable autocorrect on text inputs */
+    input[type="text"], textarea {
       autocorrect: on;
     }
     button {
@@ -85,7 +86,7 @@
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Schedule 3 Form</h1>
     <form id="schedule3-form">
-      <!-- Farm Details Section (Same as original but with autocorrect enabled) -->
+      <!-- Farm Details Section (with autocorrect enabled) -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
@@ -145,10 +146,6 @@
           <label for="replacement-due">Replacement Due Date:</label>
           <input type="date" class="form-control" id="replacement-due" name="replacement-due" autocorrect="on" spellcheck="true">
         </div>
-        <div class="detail-box">
-          <label for="rubberware-size">Rubberware Size / Details (e.g., tube inner/outer dimensions, length, quantity):</label>
-          <textarea class="form-control" id="rubberware-size" name="rubberware-size" rows="3" autocorrect="on" spellcheck="true"></textarea>
-        </div>
       </div>
       
       <!-- Buttons at the bottom of the form -->
@@ -186,7 +183,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    /* FIREBASE & DEXIE INIT (Same config as before) */
+    /* FIREBASE & DEXIE INIT */
     const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
@@ -273,7 +270,6 @@
           // Additional Schedule3 fields:
           document.getElementById('install-date').value = data.installDate || "";
           document.getElementById('replacement-due').value = data.replacementDue || "";
-          document.getElementById('rubberware-size').value = data.rubberwareSize || "";
         }
       } catch (error) {
         console.log('No Schedule3 farm details found or error:', error);
@@ -296,7 +292,7 @@
       await checkOrCreateSchedule3Record();
     }
     
-    /* Create Schedule3 Checklist Items */
+    /* Create Schedule3 Checklist Items with extra Rubberware Details input */
     function createChecklistItemsSchedule3() {
       const items = [
         "Cluster to milk line", 
@@ -313,6 +309,8 @@
       const container = document.getElementById("checklist-items");
       container.innerHTML = "";
       items.forEach(item => {
+        // Sanitize the item string for use in field names
+        const sanitized = item.replace(/\s+/g, "_").toLowerCase();
         const itemContainer = document.createElement("div");
         itemContainer.classList.add("checklist-item");
         const label = document.createElement("label");
@@ -320,7 +318,7 @@
         itemContainer.appendChild(label);
         const statusSelect = document.createElement("select");
         statusSelect.classList.add("form-select");
-        statusSelect.name = `status-${item}`;
+        statusSelect.name = `status-${sanitized}`;
         statusSelect.innerHTML = `
           <option value="ok">OK</option>
           <option value="attention-required">Attention Required</option>
@@ -331,12 +329,12 @@
         const commentsInput = document.createElement("input");
         commentsInput.type = "text";
         commentsInput.classList.add("form-control");
-        commentsInput.name = `comments-${item}`;
+        commentsInput.name = `comments-${sanitized}`;
         commentsInput.placeholder = "Comments";
         commentsInput.setAttribute("spellcheck", "true");
         commentsInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(commentsInput);
-        // Two file inputs with preview for photos
+        // Add two file inputs with preview for photos
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -346,6 +344,15 @@
           preview.classList.add("image-preview");
           itemContainer.appendChild(preview);
         }
+        // Add an extra input for Rubberware Details specific to this item
+        const rubberwareInput = document.createElement("input");
+        rubberwareInput.type = "text";
+        rubberwareInput.classList.add("form-control");
+        rubberwareInput.name = `rubberware-${sanitized}`;
+        rubberwareInput.placeholder = "Rubberware Details (e.g., tube dimensions, quantity)";
+        rubberwareInput.setAttribute("spellcheck", "true");
+        rubberwareInput.setAttribute("autocorrect", "on");
+        itemContainer.appendChild(rubberwareInput);
         statusSelect.addEventListener("change", () => {
           const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
           fileInputs.forEach(inp => {
@@ -374,17 +381,21 @@
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
       
-      // Save checklist items data
+      // Save checklist items data (including rubberware details)
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistItemsData = {};
       for (let container of checklistContainers) {
         const label = container.querySelector("label");
         if (!label) continue;
         const key = label.textContent.trim();
-        const statusSelect = container.querySelector("select");
+        const sanitized = key.replace(/\s+/g, "_").toLowerCase();
+        const statusSelect = container.querySelector(`select[name="status-${sanitized}"]`);
         const status = statusSelect ? statusSelect.value : "";
-        const commentsInput = container.querySelector('input[type="text"]');
+        const commentsInput = container.querySelector(`input[name="comments-${sanitized}"]`);
         let comments = commentsInput ? commentsInput.value : "";
+        // Get rubberware details input for this item
+        const rubberwareInput = container.querySelector(`input[name="rubberware-${sanitized}"]`);
+        const rubberware = rubberwareInput ? rubberwareInput.value : "";
         let imagesBase64 = [];
         const fileInputs = container.querySelectorAll('input[type="file"]');
         for (let fi of fileInputs) {
@@ -397,7 +408,7 @@
           const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
           comments += photoNote;
         }
-        checklistItemsData[key] = { status, comments, imagesBase64 };
+        checklistItemsData[key] = { status, comments, rubberware, imagesBase64 };
       }
       data.checklistItems = checklistItemsData;
       record.formData = data;
@@ -424,8 +435,7 @@
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || "",
         installDate: fd.get("install-date") || "",
-        replacementDue: fd.get("replacement-due") || "",
-        rubberwareSize: fd.get("rubberware-size") || ""
+        replacementDue: fd.get("replacement-due") || ""
       };
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
@@ -466,13 +476,10 @@
       if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
       const form = document.getElementById("schedule3-form");
       const fd = new FormData(form);
-      // Save farm details to "Agora schedule 3 farm details"
       await saveSchedule3FarmDetailsToFirebase(fd);
-      
-      // Save form data to Dexie DB
       await saveSchedule3FormData();
       
-      // Prepare PDF content
+      // Prepare PDF content for checklist items
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistData = [];
       let imagePromises = [];
@@ -481,8 +488,10 @@
         const labelEl = item.querySelector("label");
         if (!labelEl) continue;
         const itemName = labelEl.textContent;
-        const status = item.querySelector("select")?.value || "";
-        let comments = item.querySelector("input[type='text']")?.value || "";
+        const sanitized = itemName.replace(/\s+/g, "_").toLowerCase();
+        const status = item.querySelector(`select[name="status-${sanitized}"]`)?.value || "";
+        let comments = item.querySelector(`input[name="comments-${sanitized}"]`)?.value || "";
+        const rubberware = item.querySelector(`input[name="rubberware-${sanitized}"]`)?.value || "";
         const fileInputs = item.querySelectorAll("input[type='file']");
         let images = [];
         fileInputs.forEach(inp => {
@@ -497,15 +506,14 @@
           });
           photoStore.push(p);
         }
-        checklistData.push([itemName, status, comments]);
+        // Add an extra column for rubberware details in the PDF table
+        checklistData.push([itemName, status, comments, rubberware]);
       }
       
-      // Additional details
+      // Additional details from the farm details section
       const installDate = document.getElementById("install-date").value;
       const replacementDue = document.getElementById("replacement-due").value;
-      const rubberwareSize = document.getElementById("rubberware-size").value;
       
-      // Build PDF tables (similar to the original layout)
       const farmDetailsRows = [
         [
           { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -529,7 +537,7 @@
           { content: "Customer Name:", styles: { fontStyle: "bold" } },
           { content: (fd.get("customer-name") || ""), styles: { fontStyle: "normal" } },
           { content: "Rubberware Details:", styles: { fontStyle: "bold" } },
-          { content: rubberwareSize, styles: { fontStyle: "normal" } }
+          { content: "See individual checklist items", styles: { fontStyle: "normal" } }
         ]
       ];
       
@@ -544,7 +552,6 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Load logo as before
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -587,7 +594,7 @@
           currentY += 10;
           pdf.autoTable({
             startY: currentY,
-            head: [["Item", "Status", "Comments"]],
+            head: [["Item", "Status", "Comments", "Rubberware Details"]],
             body: checklistData,
             styles: { fontSize: 10, cellPadding: 5 },
             headStyles: { fillColor: "#002B5C", textColor: "#fff" },
@@ -703,6 +710,9 @@
             recordList.appendChild(link);
           });
         }
+        if(recordList.innerHTML === ""){
+          recordList.innerHTML = "<p>No Schedule 3 records found.</p>";
+        }
       } catch (error) {
         console.error("Error fetching Schedule3 records:", error);
       }
@@ -765,19 +775,42 @@
       loadAllFarms();
     }
     
+    // This helper function retrieves all files from the specified storage reference,
+    // including any files in subfolders.
+    async function getAllFarmFiles(storageRef) {
+      let allFiles = [];
+      try {
+        const listResult = await storageRef.listAll();
+        allFiles = allFiles.concat(listResult.items);
+        for (const prefix of listResult.prefixes) {
+          const subResult = await prefix.listAll();
+          allFiles = allFiles.concat(subResult.items);
+        }
+      } catch (err) {
+        console.error("Error listing farm files:", err);
+      }
+      return allFiles;
+    }
+    
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
       const storageRef = storage.ref("Agora schedule 3 farm details");
       try {
-        const listResult = await storageRef.listAll();
+        const allFiles = await getAllFarmFiles(storageRef);
+        if(allFiles.length === 0) {
+          farmsGrid.innerHTML = "<p>No farms found.</p>";
+          return;
+        }
         // For each file, load JSON details and create a farm box
-        const promises = listResult.items.map(async fileRef => {
+        const promises = allFiles.map(async fileRef => {
           try {
             const url = await fileRef.getDownloadURL();
             const response = await fetch(url);
             const data = await response.json();
-            return { dairyNumber: fileRef.name.replace(".json", ""), data };
+            // If file name ends with ".json" remove it; otherwise use as is.
+            const dairyNumber = fileRef.name.endsWith(".json") ? fileRef.name.replace(".json", "") : fileRef.name;
+            return { dairyNumber, data };
           } catch(e) {
             console.error("Error loading farm details:", e);
             return null;
@@ -790,8 +823,7 @@
           box.innerHTML = `<h3>${farm.data.farmName || farm.dairyNumber}</h3>
           <p><strong>Dairy Company:</strong> ${farm.data.dairyCompany || ""}</p>
           <p><strong>Install Date:</strong> ${farm.data.installDate || ""}</p>
-          <p><strong>Replacement Due:</strong> ${farm.data.replacementDue || ""}</p>
-          <p><strong>Rubberware Details:</strong> ${farm.data.rubberwareSize || ""}</p>`;
+          <p><strong>Replacement Due:</strong> ${farm.data.replacementDue || ""}</p>`;
           farmsGrid.appendChild(box);
         });
       } catch (error) {
