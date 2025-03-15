@@ -128,7 +128,7 @@
         <button type="button" onclick="allFarms()">All Farms</button>
       </div>
     </form>
-    <div class="version">Version 1.1 (Agora Schedule 3)</div>
+    <div class="version">Version 1.4 (Agora Schedule 3)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -170,7 +170,7 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const firestore = firebase.firestore();
-    // Use Dexie to store forms and dairy companies (and a queue for pending PDFs)
+    // Use Dexie to store forms and dairy companies (and a PDF upload queue)
     const db = new Dexie("OfflineData");
     db.version(5).stores({
       forms: "dairyNumber",
@@ -618,7 +618,6 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Fetch logo and then add farm details and checklist tables
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -836,13 +835,15 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    // New All Farms view built from local Dexie records
+    // NEW ALL FARMS view: only show those dairy numbers for which a PDF exists.
+    // For each dairy number folder in "Agora schedule 3 Customers", fetch its corresponding JSON from "Agora Farm Details"
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
       try {
-        const allRecords = await db.forms.toArray();
-        if (allRecords.length === 0) {
+        const storageRef = storage.ref("Agora schedule 3 Customers");
+        const folderSnapshot = await storageRef.listAll();
+        if (folderSnapshot.prefixes.length === 0) {
           farmsGrid.textContent = "No farm records found.";
           return;
         }
@@ -860,31 +861,35 @@
         `;
         table.appendChild(thead);
         const tbody = document.createElement("tbody");
-        allRecords.forEach(record => {
-          const data = record.formData || {};
-          const dairyNumber = data["dairy-number"] || record.dairyNumber;
-          const farmName = data["farm-name"] || "";
-          const dairyCompany = data["dairy-company"] || "";
-          const visitDate = data["visit-date"] || "";
-          let rubberwareDetails = "";
-          if (data.checklistItems) {
-            Object.keys(data.checklistItems).forEach(itemName => {
-              const item = data.checklistItems[itemName];
-              if (item.extra) {
-                rubberwareDetails += `<strong>${itemName}:</strong> Install: ${item.extra.installDate || "N/A"}, Replacement: ${item.extra.replacementDueDate || "N/A"}, Dimensions: ${item.extra.rubberwareDimensions || "N/A"}, Length: ${item.extra.rubberwareLength || "N/A"}, Qty: ${item.extra.rubberwareQuantity || "N/A"}<br/>`;
-              }
-            });
+        // For each dairy number folder (each subfolder name is the dairy number)
+        for (const folderRef of folderSnapshot.prefixes) {
+          const dairyNumber = folderRef.name;
+          try {
+            // Fetch the corresponding farm details JSON
+            const detailsRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
+            const url = await detailsRef.getDownloadURL();
+            const response = await fetch(url);
+            const data = await response.json();
+            // Basic fields from JSON
+            const farmName = data.farmName || "";
+            const dairyCompany = data.dairyCompany || "";
+            const visitDate = data.visitDate || "";
+            // If you saved extra rubberware details into the JSON, you could extract them here.
+            // For now, leave the Rubberware Details column blank or with a placeholder.
+            const rubberwareDetails = data.rubberwareDetails || "N/A";
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${dairyNumber}</td>
+              <td>${farmName}</td>
+              <td>${dairyCompany}</td>
+              <td>${visitDate}</td>
+              <td>${rubberwareDetails}</td>
+            `;
+            tbody.appendChild(tr);
+          } catch (error) {
+            console.error(`Error fetching farm details for dairy number ${dairyNumber}:`, error);
           }
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${dairyNumber}</td>
-            <td>${farmName}</td>
-            <td>${dairyCompany}</td>
-            <td>${visitDate}</td>
-            <td>${rubberwareDetails}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+        }
         table.appendChild(tbody);
         farmsGrid.appendChild(table);
       } catch (error) {
