@@ -1,149 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- META & STYLES -->
   <meta charset="UTF-8">
-  <title>Agora Schedule 3 – Farm Records</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agora Schedule 3 Form</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
+    /* Overall background and common styling */
     body {
+      background-color: #d2d7dd;
+      color: #000;
       font-family: Arial, sans-serif;
-      background-color: #eef;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
       margin: 0;
-      padding: 20px;
     }
-    .container {
-      max-width: 900px;
-      margin: auto;
+    .container, .record-container, .all-farms-container {
+      background-color: #d2d7dd;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      max-width: 800px;
+      width: 100%;
+    }
+    .record-container, .all-farms-container {
       background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      margin-bottom: 30px;
     }
-    h1, h2 {
-      text-align: center;
-      color: #002B5C;
+    h1, h2, h3, h4 { text-align: center; }
+    h1, h2 { color: #333; }
+    h3 { color: #002B5C; margin-top: 20px; }
+    h4 { color: #555; margin-top: 10px; }
+    label { color: #000; margin-top: 10px; }
+    input[type="text"], input[type="date"], select {
+      autocorrect: on;
     }
-    .search-input {
-      width: 100%;
-      padding: 10px;
-      margin: 15px 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      font-size: 14px;
-      text-align: left;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
-    tr.record:hover {
-      background-color: #dcdcdc;
-      cursor: pointer;
-    }
-    .btn {
-      background-color: #002B5C;
-      color: #fff;
+    button {
+      background-color: #FFD700;
+      color: #000;
       border: none;
       padding: 10px 20px;
-      border-radius: 5px;
       cursor: pointer;
-      margin-top: 20px;
-      display: block;
-      width: 200px;
-      margin-left: auto;
-      margin-right: auto;
+      display: inline-block;
+      margin: 10px 5px;
+      border-radius: 5px;
     }
-    .btn:hover {
-      background-color: #001f3f;
+    button:hover { background-color: #E6C200; }
+    .back-button { background-color: #002B5C; color: #fff; }
+    .image-upload { display: none; }
+    .image-preview {
+      display: none;
+      max-width: 200px;
+      max-height: 200px;
+      margin-top: 5px;
+      border: 2px solid #ccc;
     }
-    .error {
-      color: red;
-      text-align: center;
+    .detail-box {
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px dashed #888;
     }
-    .form-field {
-      margin-bottom: 10px;
+    .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
+    /* All Farms grid styling */
+    .farm-box {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 10px;
+      background-color: #f8f9fa;
     }
-    .form-field label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-    .form-field input {
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
+    .farm-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
     }
   </style>
 </head>
 <body>
-  <!-- Grid Section -->
-  <div class="container" id="grid-container">
-    <h1>All Farms – Agora Schedule 3</h1>
-    <input type="text" id="searchInput" class="search-input" placeholder="Search by Dairy Number, Farm Name, etc..." oninput="filterGrid()">
-    <table id="recordsTable">
-      <thead>
-        <tr>
-          <th>Dairy Number</th>
-          <th>Farm Name</th>
-          <th>Dairy Company</th>
-          <th>Region</th>
-        </tr>
-      </thead>
-      <tbody id="recordsTbody">
-        <!-- Rows are populated here -->
-      </tbody>
-    </table>
-    <p id="gridError" class="error"></p>
+  <!-- MAIN FORM CONTAINER -->
+  <div class="container" id="form-container">
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
+    <h1>Agora Schedule 3 Form</h1>
+    <form id="schedule3-form">
+      <!-- Farm Details Section (Same as original but with autocorrect enabled) -->
+      <div class="section mb-4">
+        <h2>Farm Details</h2>
+        <label for="dairy-number">Dairy Number:</label>
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="true">
+        <label for="dairy-company">Dairy Company:</label>
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="true">
+        <datalist id="dairy-company-list"></datalist>
+        <label for="address">Address:</label>
+        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="true">
+        <label for="customer-name">Customer Name:</label>
+        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="on" spellcheck="true">
+        <label for="region">Region:</label>
+        <select id="region" name="region" class="form-select">
+          <option value="northland">Northland</option>
+          <option value="auckland">Auckland</option>
+          <option value="waikato">Waikato</option>
+          <option value="bay-of-plenty">Bay of Plenty</option>
+          <option value="gisborne">Gisborne</option>
+          <option value="hawkes-bay">Hawke's Bay</option>
+          <option value="taranaki">Taranaki</option>
+          <option value="manawatu-wanganui">Manawatu-Wanganui</option>
+          <option value="wellington">Wellington</option>
+          <option value="nelson">Nelson</option>
+          <option value="marlborough">Marlborough</option>
+          <option value="west-coast">West Coast</option>
+          <option value="canterbury">Canterbury</option>
+          <option value="otago">Otago</option>
+          <option value="southland">Southland</option>
+        </select>
+        <label for="farm-name">Farm Name:</label>
+        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="on" spellcheck="true">
+        <label for="island">Island:</label>
+        <select id="island" name="island" class="form-select">
+          <option value="north-island">North Island</option>
+          <option value="south-island">South Island</option>
+        </select>
+        <label for="visit-date">Visit Date:</label>
+        <input type="date" class="form-control" id="visit-date" name="visit-date">
+        <label for="visit-type">Visit Type:</label>
+        <input type="text" class="form-control" id="visit-type" name="visit-type" value="Schedule 3 Check" readonly autocapitalize="words" autocorrect="on" spellcheck="true">
+      </div>
+      
+      <!-- Schedule 3 Checklist Section -->
+      <div class="section mb-4">
+        <h2>Checklist Items</h2>
+        <div id="checklist-items"></div>
+      </div>
+      
+      <!-- Additional Schedule 3 Details -->
+      <div class="section mb-4">
+        <h2>Additional Details</h2>
+        <div class="detail-box">
+          <label for="install-date">Install Date:</label>
+          <input type="date" class="form-control" id="install-date" name="install-date" autocorrect="on" spellcheck="true">
+        </div>
+        <div class="detail-box">
+          <label for="replacement-due">Replacement Due Date:</label>
+          <input type="date" class="form-control" id="replacement-due" name="replacement-due" autocorrect="on" spellcheck="true">
+        </div>
+        <div class="detail-box">
+          <label for="rubberware-size">Rubberware Size / Details (e.g., tube inner/outer dimensions, length, quantity):</label>
+          <textarea class="form-control" id="rubberware-size" name="rubberware-size" rows="3" autocorrect="on" spellcheck="true"></textarea>
+        </div>
+      </div>
+      
+      <!-- Buttons at the bottom of the form -->
+      <div style="text-align: center;">
+        <button type="button" onclick="generatePDFSchedule3()">Generate PDF</button>
+        <button type="button" onclick="viewRecordsSchedule3()">View All Records</button>
+        <button type="button" onclick="showAllFarms()">All Farms</button>
+      </div>
+    </form>
+    <div class="version">Version 1.0 (Agora Schedule 3)</div>
   </div>
-
-  <!-- Form Section for Auto-Population -->
-  <div class="container" id="form-container" style="display: none;">
-    <h2>Farm Details</h2>
-    <div class="form-field">
-      <label for="form-dairy-number">Dairy Number</label>
-      <input type="text" id="form-dairy-number" readonly>
+  
+  <!-- RECORDS VIEW (Schedule 3) -->
+  <div id="record-container" class="record-container" style="display: none;">
+    <h2>All Schedule 3 Records</h2>
+    <div class="search-container">
+      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecordsSchedule3()">
     </div>
-    <div class="form-field">
-      <label for="form-dairy-company">Dairy Company</label>
-      <input type="text" id="form-dairy-company">
-    </div>
-    <div class="form-field">
-      <label for="form-address">Address</label>
-      <input type="text" id="form-address">
-    </div>
-    <div class="form-field">
-      <label for="form-customer-name">Customer Name</label>
-      <input type="text" id="form-customer-name">
-    </div>
-    <div class="form-field">
-      <label for="form-region">Region</label>
-      <input type="text" id="form-region">
-    </div>
-    <div class="form-field">
-      <label for="form-farm-name">Farm Name</label>
-      <input type="text" id="form-farm-name">
-    </div>
-    <div class="form-field">
-      <label for="form-island">Island</label>
-      <input type="text" id="form-island">
-    </div>
-    <button class="btn" onclick="hideForm()">Close Form</button>
+    <div id="record-list" class="record-list"></div>
+    <button class="back-button" onclick="goBackSchedule3()">Back to Form</button>
   </div>
-
-  <!-- Firebase Scripts -->
+  
+  <!-- ALL FARMS VIEW (Schedule 3) -->
+  <div id="all-farms-container" class="all-farms-container" style="display: none;">
+    <h2>All Farms - Schedule 3</h2>
+    <div id="farms-grid" class="farm-grid"></div>
+    <button class="back-button" onclick="backToFormSchedule3()">Back to Form</button>
+  </div>
+  
+  <!-- SCRIPTS -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.0.3/dexie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    // Use the same Firebase configuration as your original form.
+    /* FIREBASE & DEXIE INIT (Same config as before) */
+    const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -154,97 +198,622 @@
     };
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
-
-    // Hard-coded list of dairy numbers that have files in the folder.
-    // Replace this array with your dynamic list if available.
-    const dairyNumbers = ["49"]; // Add more as needed.
-
-    // Load all farms on page load.
-    async function loadAllRecords() {
-      const tbody = document.getElementById("recordsTbody");
-      const gridError = document.getElementById("gridError");
-      tbody.innerHTML = "";
-      gridError.textContent = "";
-      
-      for (const dairy of dairyNumbers) {
-        const filePath = `Agora schedule 3 farm details/${dairy}.json`;
-        const fileRef = storage.ref(filePath);
-        try {
-          const url = await fileRef.getDownloadURL();
-          console.log("Loaded URL for dairy", dairy, ":", url);
-          const res = await fetch(url);
-          if (!res.ok) throw new Error("HTTP error " + res.status);
-          const data = await res.json();
-          addRecordRow(dairy, data);
-        } catch (error) {
-          console.error("Error loading dairy", dairy, error);
-          addRecordRow(dairy, { farmName: "Error", dairyCompany: "Error", region: "Error" }, error.message);
-        }
-      }
-      if (!tbody.hasChildNodes()) {
-        gridError.textContent = "No farm records loaded.";
-      }
+    const firestore = firebase.firestore();
+    const db = new Dexie("OfflineData");
+    db.version(5).stores({
+      schedule3Forms: "dairyNumber",
+      dairyCompanies: "++id, name",
+      pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
+    });
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
     }
-
-    // Add a row to the grid table for a given dairy record.
-    function addRecordRow(dairy, data, errorMsg) {
-      const tbody = document.getElementById("recordsTbody");
-      const tr = document.createElement("tr");
-      tr.classList.add("record");
-      if (errorMsg) {
-        tr.innerHTML = `<td colspan="4" class="error">Error loading dairy ${dairy}: ${errorMsg}</td>`;
-      } else {
-        tr.innerHTML = `
-          <td>${dairy}</td>
-          <td>${data.farmName || "N/A"}</td>
-          <td>${data.dairyCompany || "N/A"}</td>
-          <td>${data.region || "N/A"}</td>
-        `;
-        // When the row is clicked, auto-populate the form with full details.
-        tr.onclick = function() {
-          populateForm(dairy, data);
-        };
-      }
-      tbody.appendChild(tr);
-    }
-
-    // Auto-populate the form with data from the selected record.
-    function populateForm(dairy, data) {
-      document.getElementById("form-dairy-number").value = dairy;
-      document.getElementById("form-dairy-company").value = data.dairyCompany || "";
-      document.getElementById("form-address").value = data.address || "";
-      document.getElementById("form-customer-name").value = data.customerName || "";
-      document.getElementById("form-region").value = data.region || "";
-      document.getElementById("form-farm-name").value = data.farmName || "";
-      document.getElementById("form-island").value = data.island || "";
-      // Show the form.
-      document.getElementById("form-container").style.display = "block";
-      // Scroll to form.
-      document.getElementById("form-container").scrollIntoView({ behavior: "smooth" });
-    }
-
-    // Hide the form.
-    function hideForm() {
-      document.getElementById("form-container").style.display = "none";
-    }
-
-    // Filter the grid table based on the search input.
-    function filterGrid() {
-      const filter = document.getElementById("searchInput").value.toLowerCase();
-      const rows = document.querySelectorAll("#recordsTbody tr");
-      rows.forEach(row => {
-        let visible = false;
-        row.querySelectorAll("td").forEach(td => {
-          if (td.textContent.toLowerCase().indexOf(filter) > -1) {
-            visible = true;
-          }
-        });
-        row.style.display = visible ? "" : "none";
+    
+    /* Utility Functions */
+    function toTitleCase(str) {
+      return str.replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
       });
     }
-
-    // Auto-load all records when the page loads.
-    window.addEventListener("load", loadAllRecords);
+    function autoCapitalizeInput(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
+    }
+    
+    async function setupDairyCompanyDatalist() {
+      const defaultCompanies = [
+        "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
+        "Oceania", "OFI", "Synlait Milk LTD", "Tatua", "Danone", "Fresha Valley LTD",
+        "Mataura Valley Milk", "Open Country Dairy LTD", "Waiu", "Westland Milk Products"
+      ];
+      const userCompanies = await db.dairyCompanies.toArray();
+      const allCompanies = [...defaultCompanies];
+      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
+      const datalist = document.getElementById('dairy-company-list');
+      datalist.innerHTML = "";
+      allCompanies.forEach(c => { 
+        const opt = document.createElement('option');
+        opt.value = c;
+        datalist.appendChild(opt);
+      });
+      const dairyCompanyInput = document.getElementById('dairy-company');
+      dairyCompanyInput.addEventListener('blur', async () => {
+        dairyCompanyInput.value = toTitleCase(dairyCompanyInput.value.trim());
+        const typedValue = dairyCompanyInput.value;
+        if (typedValue && !allCompanies.includes(typedValue)) {
+          await db.dairyCompanies.add({ name: typedValue });
+          allCompanies.push(typedValue);
+          const newOpt = document.createElement('option');
+          newOpt.value = typedValue;
+          datalist.appendChild(newOpt);
+        }
+      });
+    }
+    
+    async function fetchFarmDetailsSchedule3() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      const storageRef = storage.ref(`Agora schedule 3 farm details/${dairyNumber}.json`);
+      try {
+        const url = await storageRef.getDownloadURL();
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch farm details');
+        const data = await response.json();
+        if (data) {
+          document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
+          document.getElementById('address').value = toTitleCase(data.address || '');
+          document.getElementById('customer-name').value = toTitleCase(data.customerName || '');
+          document.getElementById('region').value = data.region || '';
+          document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
+          document.getElementById('island').value = data.island || '';
+          // Additional Schedule3 fields:
+          document.getElementById('install-date').value = data.installDate || "";
+          document.getElementById('replacement-due').value = data.replacementDue || "";
+          document.getElementById('rubberware-size').value = data.rubberwareSize || "";
+        }
+      } catch (error) {
+        console.log('No Schedule3 farm details found or error:', error);
+      }
+    }
+    
+    async function checkOrCreateSchedule3Record() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      let record = await db.schedule3Forms.get(dairyNumber);
+      if (!record) {
+        record = { dairyNumber, formData: {}, creationTime: Date.now() };
+        await db.schedule3Forms.put(record);
+      }
+    }
+    async function handleDairyNumberBlur() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      fetchFarmDetailsSchedule3();
+      await checkOrCreateSchedule3Record();
+    }
+    
+    /* Create Schedule3 Checklist Items */
+    function createChecklistItemsSchedule3() {
+      const items = [
+        "Cluster to milk line", 
+        "Cluster short Pulse tubes", 
+        "Cluster pulse tube to pulsator", 
+        "Cluster bowl seal", 
+        "Cluster small ring seal", 
+        "Liners", 
+        "Milk filter seal", 
+        "Front Vat tap seal", 
+        "Back vat tap seal", 
+        "Vat door seal"
+      ];
+      const container = document.getElementById("checklist-items");
+      container.innerHTML = "";
+      items.forEach(item => {
+        const itemContainer = document.createElement("div");
+        itemContainer.classList.add("checklist-item");
+        const label = document.createElement("label");
+        label.textContent = item;
+        itemContainer.appendChild(label);
+        const statusSelect = document.createElement("select");
+        statusSelect.classList.add("form-select");
+        statusSelect.name = `status-${item}`;
+        statusSelect.innerHTML = `
+          <option value="ok">OK</option>
+          <option value="attention-required">Attention Required</option>
+          <option value="na">N/A</option>
+          <option value="not-checked">Not Checked</option>
+        `;
+        itemContainer.appendChild(statusSelect);
+        const commentsInput = document.createElement("input");
+        commentsInput.type = "text";
+        commentsInput.classList.add("form-control");
+        commentsInput.name = `comments-${item}`;
+        commentsInput.placeholder = "Comments";
+        commentsInput.setAttribute("spellcheck", "true");
+        commentsInput.setAttribute("autocorrect", "on");
+        itemContainer.appendChild(commentsInput);
+        // Two file inputs with preview for photos
+        for (let i = 0; i < 2; i++) {
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.classList.add("form-control", "image-upload");
+          itemContainer.appendChild(fileInput);
+          const preview = document.createElement("img");
+          preview.classList.add("image-preview");
+          itemContainer.appendChild(preview);
+        }
+        statusSelect.addEventListener("change", () => {
+          const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+          fileInputs.forEach(inp => {
+            inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+          });
+        });
+        container.appendChild(itemContainer);
+      });
+    }
+    
+    /* LOAD, CLEAR & SAVE Data for Schedule 3 */
+    function clearEntireFormSchedule3() {
+      document.getElementById("schedule3-form").reset();
+      const imageUploads = document.querySelectorAll(".image-upload");
+      imageUploads.forEach(inp => { inp.style.display = "none"; });
+      const previews = document.querySelectorAll(".image-preview");
+      previews.forEach(img => { img.src = ""; img.style.display = "none"; });
+    }
+    
+    async function saveSchedule3FormData() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) return;
+      let record = await db.schedule3Forms.get(dairyNumber);
+      if (!record) { record = { dairyNumber, formData: {}, creationTime: Date.now() }; }
+      const form = document.getElementById("schedule3-form");
+      const formDataObj = new FormData(form);
+      const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
+      
+      // Save checklist items data
+      const checklistContainers = document.getElementById("checklist-items").children;
+      const checklistItemsData = {};
+      for (let container of checklistContainers) {
+        const label = container.querySelector("label");
+        if (!label) continue;
+        const key = label.textContent.trim();
+        const statusSelect = container.querySelector("select");
+        const status = statusSelect ? statusSelect.value : "";
+        const commentsInput = container.querySelector('input[type="text"]');
+        let comments = commentsInput ? commentsInput.value : "";
+        let imagesBase64 = [];
+        const fileInputs = container.querySelectorAll('input[type="file"]');
+        for (let fi of fileInputs) {
+          if (fi.files && fi.files[0]) {
+            const base64 = await convertFileToBase64(fi.files[0]);
+            imagesBase64.push(base64);
+          }
+        }
+        if (status === "attention-required" && imagesBase64.length > 0) {
+          const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+        }
+        checklistItemsData[key] = { status, comments, imagesBase64 };
+      }
+      data.checklistItems = checklistItemsData;
+      record.formData = data;
+      await db.schedule3Forms.put(record);
+    }
+    
+    function convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    async function saveSchedule3FarmDetailsToFirebase(fd) {
+      const dairyNumber = fd.get("dairy-number") || "";
+      if (!dairyNumber) return;
+      const farmDetails = {
+        dairyCompany: fd.get("dairy-company") || "",
+        address: fd.get("address") || "",
+        customerName: fd.get("customer-name") || "",
+        region: fd.get("region") || "",
+        farmName: fd.get("farm-name") || "",
+        island: fd.get("island") || "",
+        installDate: fd.get("install-date") || "",
+        replacementDue: fd.get("replacement-due") || "",
+        rubberwareSize: fd.get("rubberware-size") || ""
+      };
+      const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
+      try {
+        const storageRefFarm = storage.ref(`Agora schedule 3 farm details/${dairyNumber}.json`);
+        await storageRefFarm.put(jsonBlob);
+        console.log("Schedule 3 farm details JSON saved.");
+      } catch (err) {
+        console.error("Error saving Schedule 3 farm details JSON:", err);
+      }
+    }
+    
+    async function uploadPendingPDFs() {
+      if (!navigator.onLine) return;
+      const queuedPDFs = await db.pdfQueue.toArray();
+      for (let pdfRecord of queuedPDFs) {
+        if(pdfRecord.target === "schedule3"){
+          try{
+            await uploadSinglePDFSchedule3(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
+            await db.pdfQueue.delete(pdfRecord.id);
+            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully (Schedule3).`);
+          } catch(err){ console.error("Retry PDF upload (Schedule3) failed:", err); }
+        }
+      }
+    }
+    
+    function uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob) {
+      return new Promise((resolve, reject) => {
+        const uploadRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}/${fileName}`);
+        const task = uploadRef.put(pdfBlob);
+        task.on("state_changed", null, err => reject(err), () => resolve());
+      });
+    }
+    
+    window.addEventListener("online", uploadPendingPDFs);
+    
+    async function generatePDFSchedule3() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
+      const form = document.getElementById("schedule3-form");
+      const fd = new FormData(form);
+      // Save farm details to "Agora schedule 3 farm details"
+      await saveSchedule3FarmDetailsToFirebase(fd);
+      
+      // Save form data to Dexie DB
+      await saveSchedule3FormData();
+      
+      // Prepare PDF content
+      const checklistContainers = document.getElementById("checklist-items").children;
+      const checklistData = [];
+      let imagePromises = [];
+      let photoStore = [];
+      for (let item of checklistContainers) {
+        const labelEl = item.querySelector("label");
+        if (!labelEl) continue;
+        const itemName = labelEl.textContent;
+        const status = item.querySelector("select")?.value || "";
+        let comments = item.querySelector("input[type='text']")?.value || "";
+        const fileInputs = item.querySelectorAll("input[type='file']");
+        let images = [];
+        fileInputs.forEach(inp => {
+          if (inp.files && inp.files[0]) { images.push(inp.files[0]); }
+        });
+        if (status === "attention-required" && images.length > 0) {
+          const photoNote = images.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+          const p = { itemName, images: [] };
+          images.forEach((file, idx) => {
+            imagePromises.push(convertFileToBase64(file).then(result => { p.images[idx] = result; }));
+          });
+          photoStore.push(p);
+        }
+        checklistData.push([itemName, status, comments]);
+      }
+      
+      // Additional details
+      const installDate = document.getElementById("install-date").value;
+      const replacementDue = document.getElementById("replacement-due").value;
+      const rubberwareSize = document.getElementById("rubberware-size").value;
+      
+      // Build PDF tables (similar to the original layout)
+      const farmDetailsRows = [
+        [
+          { content: "Dairy Company:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("dairy-company") || ""), styles: { fontStyle: "normal" } },
+          { content: "Visit Type:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("visit-type") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Dairy Number:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("dairy-number") || ""), styles: { fontStyle: "normal" } },
+          { content: "Install Date:", styles: { fontStyle: "bold" } },
+          { content: installDate, styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Address:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("address") || ""), styles: { fontStyle: "normal" } },
+          { content: "Replacement Due Date:", styles: { fontStyle: "bold" } },
+          { content: replacementDue, styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Customer Name:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("customer-name") || ""), styles: { fontStyle: "normal" } },
+          { content: "Rubberware Details:", styles: { fontStyle: "bold" } },
+          { content: rubberwareSize, styles: { fontStyle: "normal" } }
+        ]
+      ];
+      
+      Promise.all(imagePromises).then(() => {
+        finalizePDF();
+      }).catch(() => {
+        finalizePDF();
+      });
+      
+      function finalizePDF() {
+        const pdf = new jsPDF("p", "pt", "a4");
+        let currentY = 40;
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        // Load logo as before
+        storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
+          fetch(url)
+            .then(res => res.blob())
+            .then(blob => convertFileToBase64(blob))
+            .then(logoBase64 => {
+              const img = new Image();
+              img.onload = function() {
+                const fixedLogoWidth = 150;
+                const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+                const x = (pageWidth - fixedLogoWidth) / 2;
+                pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
+                currentY = 40 + fixedLogoHeight + 20;
+                addFarmDetailsAndTables(pdf);
+              };
+              img.src = logoBase64;
+            })
+            .catch(err => {
+              console.error("Logo error:", err);
+              addFarmDetailsAndTables(pdf);
+            });
+        }).catch(err => {
+          console.error("Logo error:", err);
+          addFarmDetailsAndTables(pdf);
+        });
+        
+        function addFarmDetailsAndTables(pdf) {
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Farm Details", "", "", ""]],
+            body: farmDetailsRows,
+            theme: 'grid',
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Checklist Items:", 40, currentY);
+          currentY += 10;
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Item", "Status", "Comments"]],
+            body: checklistData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          if (photoStore.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            if (currentY + 20 > pageHeight) {
+              pdf.addPage();
+              currentY = 40;
+            }
+            pdf.text("Attached Photos:", 40, currentY);
+            currentY += 20;
+            photoStore.forEach(photoItem => {
+              if (currentY + 15 > pageHeight) {
+                pdf.addPage();
+                currentY = 40;
+              }
+              pdf.setFont("helvetica", "bold");
+              pdf.text(photoItem.itemName, 40, currentY);
+              currentY += 15;
+              let maxImgHeight = 0;
+              photoItem.images.forEach((img, idx) => {
+                try {
+                  const imgProps = pdf.getImageProperties(img);
+                  const imgWidth = 250;
+                  const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+                  if (currentY + imgHeight > pageHeight) {
+                    pdf.addPage();
+                    currentY = 40;
+                  }
+                  pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
+                  if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
+                } catch(e) {
+                  console.error("Error adding image:", e);
+                }
+              });
+              currentY += maxImgHeight + 20;
+            });
+          }
+          
+          (async function(){
+            const pdfBlob = pdf.output("blob");
+            const visitDate = fd.get("visit-date");
+            if (!visitDate) {
+              alert("Visit Date is required.");
+              return;
+            }
+            const dateParts = visitDate.split("-");
+            const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
+            const fileName = `${fd.get("dairy-number")}-schedule3-${formattedVisitDate}.pdf`;
+            try {
+              await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
+              console.log("Schedule 3 PDF uploaded successfully");
+            } catch(e) {
+              console.error("PDF upload failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "schedule3" });
+            }
+            db.schedule3Forms.delete(fd.get("dairy-number"));
+            pdf.save(fileName);
+            uploadPendingPDFs();
+            clearEntireFormSchedule3();
+            location.reload();
+          })();
+        }
+      }
+    }
+    
+    /* VIEW RECORDS (Schedule 3) */
+    function viewRecordsSchedule3() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("all-farms-container").style.display = "none";
+      document.getElementById("record-container").style.display = "block";
+      loadAllRecordsSchedule3();
+    }
+    
+    async function loadAllRecordsSchedule3() {
+      const recordList = document.getElementById("record-list");
+      recordList.innerHTML = "";
+      const storageRef = storage.ref("Agora schedule 3 Customers");
+      try {
+        const folderSnapshot = await storageRef.listAll();
+        // List folders (each dairy number)
+        if (folderSnapshot.prefixes.length > 0) {
+          folderSnapshot.prefixes.forEach(folderRef => {
+            const dairyNumber = folderRef.name;
+            const link = document.createElement("a");
+            link.textContent = dairyNumber;
+            link.href = "#";
+            link.style.display = "block";
+            link.addEventListener("click", () => loadRecordFilesSchedule3(dairyNumber));
+            recordList.appendChild(link);
+          });
+        }
+        // List any files directly in the folder
+        if (folderSnapshot.items.length > 0) {
+          folderSnapshot.items.forEach(fileRef => {
+            const fileName = fileRef.name;
+            const link = document.createElement("a");
+            link.textContent = fileName;
+            link.href = "#";
+            link.style.display = "block";
+            link.addEventListener("click", async () => {
+              try {
+                const url = await fileRef.getDownloadURL();
+                window.open(url, "_blank");
+              } catch (err) {
+                console.error("Error fetching file:", err);
+              }
+            });
+            recordList.appendChild(link);
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching Schedule3 records:", error);
+      }
+    }
+    
+    async function loadRecordFilesSchedule3(dairyNumber) {
+      const recordList = document.getElementById("record-list");
+      recordList.innerHTML = "";
+      const folderRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}`);
+      try {
+        const fileSnapshot = await folderRef.listAll();
+        fileSnapshot.items.forEach(fileRef => {
+          const fileName = fileRef.name;
+          const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
+          const displayName = dateMatch ? dateMatch[0] : fileName;
+          const fileLink = document.createElement("a");
+          fileLink.textContent = displayName;
+          fileLink.href = "#";
+          fileLink.style.display = "block";
+          fileLink.addEventListener("click", async () => {
+            try {
+              const url = await fileRef.getDownloadURL();
+              window.open(url, "_blank");
+            } catch (err) {
+              console.error("Error fetching file:", err);
+            }
+          });
+          recordList.appendChild(fileLink);
+        });
+        const backBtn = document.createElement("button");
+        backBtn.textContent = "Back to Records";
+        backBtn.className = "back-button";
+        backBtn.addEventListener("click", loadAllRecordsSchedule3);
+        recordList.appendChild(backBtn);
+      } catch (err) {
+        console.error("Error fetching record files:", err);
+      }
+    }
+    
+    function filterRecordsSchedule3() {
+      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
+      const recordList = document.getElementById("record-list");
+      const links = recordList.getElementsByTagName("a");
+      for (let i = 0; i < links.length; i++) {
+        const txt = links[i].textContent || links[i].innerText;
+        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
+      }
+    }
+    
+    function goBackSchedule3() {
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    /* ALL FARMS VIEW */
+    function showAllFarms() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("all-farms-container").style.display = "block";
+      loadAllFarms();
+    }
+    
+    async function loadAllFarms() {
+      const farmsGrid = document.getElementById("farms-grid");
+      farmsGrid.innerHTML = "";
+      const storageRef = storage.ref("Agora schedule 3 farm details");
+      try {
+        const listResult = await storageRef.listAll();
+        // For each file, load JSON details and create a farm box
+        const promises = listResult.items.map(async fileRef => {
+          try {
+            const url = await fileRef.getDownloadURL();
+            const response = await fetch(url);
+            const data = await response.json();
+            return { dairyNumber: fileRef.name.replace(".json", ""), data };
+          } catch(e) {
+            console.error("Error loading farm details:", e);
+            return null;
+          }
+        });
+        const farms = await Promise.all(promises);
+        farms.filter(f => f).forEach(farm => {
+          const box = document.createElement("div");
+          box.classList.add("farm-box");
+          box.innerHTML = `<h3>${farm.data.farmName || farm.dairyNumber}</h3>
+          <p><strong>Dairy Company:</strong> ${farm.data.dairyCompany || ""}</p>
+          <p><strong>Install Date:</strong> ${farm.data.installDate || ""}</p>
+          <p><strong>Replacement Due:</strong> ${farm.data.replacementDue || ""}</p>
+          <p><strong>Rubberware Details:</strong> ${farm.data.rubberwareSize || ""}</p>`;
+          farmsGrid.appendChild(box);
+        });
+      } catch (error) {
+        console.error("Error loading all farms:", error);
+      }
+    }
+    
+    function backToFormSchedule3() {
+      document.getElementById("all-farms-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    document.addEventListener("DOMContentLoaded", async () => {
+      const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name"];
+      fieldsToAutoCap.forEach(autoCapitalizeInput);
+      await setupDairyCompanyDatalist();
+      createChecklistItemsSchedule3();
+      const form = document.getElementById("schedule3-form");
+      form.addEventListener("input", saveSchedule3FormData);
+      form.addEventListener("change", saveSchedule3FormData);
+      uploadPendingPDFs();
+    });
   </script>
 </body>
 </html>
