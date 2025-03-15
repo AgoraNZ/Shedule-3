@@ -64,19 +64,23 @@
       padding: 10px;
       border: 1px dashed #888;
     }
+    .checklist-extra {
+      margin-top: 5px;
+    }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
     /* All Farms grid styling */
-    .farm-box {
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      padding: 15px;
-      margin: 10px;
-      background-color: #f8f9fa;
+    .all-farms-container table {
+      width: 100%;
+      border-collapse: collapse;
     }
-    .farm-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
+    .all-farms-container th, .all-farms-container td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    .all-farms-container th {
+      background-color: #002B5C;
+      color: #fff;
     }
   </style>
 </head>
@@ -171,7 +175,7 @@
   <!-- ALL FARMS VIEW (Schedule 3) -->
   <div id="all-farms-container" class="all-farms-container" style="display: none;">
     <h2>All Farms - Schedule 3</h2>
-    <div id="farms-grid" class="farm-grid"></div>
+    <div id="farms-grid"></div>
     <button class="back-button" onclick="backToFormSchedule3()">Back to Form</button>
   </div>
   
@@ -292,7 +296,7 @@
       await checkOrCreateSchedule3Record();
     }
     
-    /* Create Schedule3 Checklist Items with extra Rubberware Details input */
+    /* Create Schedule3 Checklist Items with extra fields */
     function createChecklistItemsSchedule3() {
       const items = [
         "Cluster to milk line", 
@@ -313,6 +317,7 @@
         const sanitized = item.replace(/\s+/g, "_").toLowerCase();
         const itemContainer = document.createElement("div");
         itemContainer.classList.add("checklist-item");
+        // Main label and standard fields
         const label = document.createElement("label");
         label.textContent = item;
         itemContainer.appendChild(label);
@@ -334,7 +339,7 @@
         commentsInput.setAttribute("spellcheck", "true");
         commentsInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(commentsInput);
-        // Add two file inputs with preview for photos
+        // File inputs for photos
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -344,15 +349,25 @@
           preview.classList.add("image-preview");
           itemContainer.appendChild(preview);
         }
-        // Add an extra input for Rubberware Details specific to this item
+        // Extra input for Rubberware Details (if needed)
         const rubberwareInput = document.createElement("input");
         rubberwareInput.type = "text";
         rubberwareInput.classList.add("form-control");
         rubberwareInput.name = `rubberware-${sanitized}`;
-        rubberwareInput.placeholder = "Rubberware Details (e.g., tube dimensions, quantity)";
+        rubberwareInput.placeholder = "General Rubberware Details";
         rubberwareInput.setAttribute("spellcheck", "true");
         rubberwareInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(rubberwareInput);
+        // New extra fields: Quantity, Size, Item Install Date, Expiry Date
+        const extraDiv = document.createElement("div");
+        extraDiv.classList.add("checklist-extra");
+        extraDiv.innerHTML = `
+          <input type="text" class="form-control mb-1" name="quantity-${sanitized}" placeholder="Quantity" autocorrect="on" spellcheck="true">
+          <input type="text" class="form-control mb-1" name="size-${sanitized}" placeholder="Size" autocorrect="on" spellcheck="true">
+          <input type="date" class="form-control mb-1" name="item-install-${sanitized}" placeholder="Item Install Date">
+          <input type="date" class="form-control" name="expiry-date-${sanitized}" placeholder="Expiry Date">
+        `;
+        itemContainer.appendChild(extraDiv);
         statusSelect.addEventListener("change", () => {
           const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
           fileInputs.forEach(inp => {
@@ -381,7 +396,7 @@
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
       
-      // Save checklist items data (including rubberware details)
+      // Save checklist items data (including extra fields)
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistItemsData = {};
       for (let container of checklistContainers) {
@@ -389,13 +404,13 @@
         if (!label) continue;
         const key = label.textContent.trim();
         const sanitized = key.replace(/\s+/g, "_").toLowerCase();
-        const statusSelect = container.querySelector(`select[name="status-${sanitized}"]`);
-        const status = statusSelect ? statusSelect.value : "";
-        const commentsInput = container.querySelector(`input[name="comments-${sanitized}"]`);
-        let comments = commentsInput ? commentsInput.value : "";
-        // Get rubberware details input for this item
-        const rubberwareInput = container.querySelector(`input[name="rubberware-${sanitized}"]`);
-        const rubberware = rubberwareInput ? rubberwareInput.value : "";
+        const status = container.querySelector(`select[name="status-${sanitized}"]`)?.value || "";
+        let comments = container.querySelector(`input[name="comments-${sanitized}"]`)?.value || "";
+        const rubberware = container.querySelector(`input[name="rubberware-${sanitized}"]`)?.value || "";
+        const quantity = container.querySelector(`input[name="quantity-${sanitized}"]`)?.value || "";
+        const size = container.querySelector(`input[name="size-${sanitized}"]`)?.value || "";
+        const itemInstall = container.querySelector(`input[name="item-install-${sanitized}"]`)?.value || "";
+        const expiryDate = container.querySelector(`input[name="expiry-date-${sanitized}"]`)?.value || "";
         let imagesBase64 = [];
         const fileInputs = container.querySelectorAll('input[type="file"]');
         for (let fi of fileInputs) {
@@ -408,7 +423,16 @@
           const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
           comments += photoNote;
         }
-        checklistItemsData[key] = { status, comments, rubberware, imagesBase64 };
+        checklistItemsData[key] = { 
+          status, 
+          comments, 
+          rubberware, 
+          quantity, 
+          size, 
+          itemInstall, 
+          expiryDate, 
+          imagesBase64 
+        };
       }
       data.checklistItems = checklistItemsData;
       record.formData = data;
@@ -424,9 +448,11 @@
       });
     }
     
+    // Update the farm details JSON to include checklistItems data (only the extra fields we need for the All Farms table)
     async function saveSchedule3FarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
+      // Get basic farm details
       const farmDetails = {
         dairyCompany: fd.get("dairy-company") || "",
         address: fd.get("address") || "",
@@ -437,6 +463,22 @@
         installDate: fd.get("install-date") || "",
         replacementDue: fd.get("replacement-due") || ""
       };
+      // Also include the checklist extra fields from the form data saved in Dexie
+      const record = await db.schedule3Forms.get(dairyNumber);
+      if (record && record.formData && record.formData.checklistItems) {
+        // For each checklist item, extract the desired fields for display in the All Farms table
+        const checklistForDisplay = [];
+        for (const [itemName, details] of Object.entries(record.formData.checklistItems)) {
+          checklistForDisplay.push({
+            itemName,
+            quantity: details.quantity || "",
+            size: details.size || "",
+            itemInstall: details.itemInstall || "",
+            expiryDate: details.expiryDate || ""
+          });
+        }
+        farmDetails.checklistItems = checklistForDisplay;
+      }
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
         const storageRefFarm = storage.ref(`Agora schedule 3 farm details/${dairyNumber}.json`);
@@ -476,10 +518,12 @@
       if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
       const form = document.getElementById("schedule3-form");
       const fd = new FormData(form);
+      // Save farm details (including checklist extra fields) to Firebase
       await saveSchedule3FarmDetailsToFirebase(fd);
+      // Also save the form data in Dexie
       await saveSchedule3FormData();
       
-      // Prepare PDF content for checklist items
+      // Prepare PDF content (this example reuses checklistData from form)
       const checklistContainers = document.getElementById("checklist-items").children;
       const checklistData = [];
       let imagePromises = [];
@@ -492,6 +536,10 @@
         const status = item.querySelector(`select[name="status-${sanitized}"]`)?.value || "";
         let comments = item.querySelector(`input[name="comments-${sanitized}"]`)?.value || "";
         const rubberware = item.querySelector(`input[name="rubberware-${sanitized}"]`)?.value || "";
+        const quantity = item.querySelector(`input[name="quantity-${sanitized}"]`)?.value || "";
+        const size = item.querySelector(`input[name="size-${sanitized}"]`)?.value || "";
+        const itemInstall = item.querySelector(`input[name="item-install-${sanitized}"]`)?.value || "";
+        const expiryDate = item.querySelector(`input[name="expiry-date-${sanitized}"]`)?.value || "";
         const fileInputs = item.querySelectorAll("input[type='file']");
         let images = [];
         fileInputs.forEach(inp => {
@@ -506,14 +554,11 @@
           });
           photoStore.push(p);
         }
-        // Add an extra column for rubberware details in the PDF table
-        checklistData.push([itemName, status, comments, rubberware]);
+        // For PDF, include the extra fields in the checklist row
+        checklistData.push([itemName, quantity, size, itemInstall, expiryDate]);
       }
       
-      // Additional details from the farm details section
-      const installDate = document.getElementById("install-date").value;
-      const replacementDue = document.getElementById("replacement-due").value;
-      
+      // Basic farm details for the PDF header
       const farmDetailsRows = [
         [
           { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -525,19 +570,19 @@
           { content: "Dairy Number:", styles: { fontStyle: "bold" } },
           { content: (fd.get("dairy-number") || ""), styles: { fontStyle: "normal" } },
           { content: "Install Date:", styles: { fontStyle: "bold" } },
-          { content: installDate, styles: { fontStyle: "normal" } }
+          { content: (fd.get("install-date") || ""), styles: { fontStyle: "normal" } }
         ],
         [
           { content: "Address:", styles: { fontStyle: "bold" } },
           { content: (fd.get("address") || ""), styles: { fontStyle: "normal" } },
-          { content: "Replacement Due Date:", styles: { fontStyle: "bold" } },
-          { content: replacementDue, styles: { fontStyle: "normal" } }
+          { content: "Replacement Due:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("replacement-due") || ""), styles: { fontStyle: "normal" } }
         ],
         [
           { content: "Customer Name:", styles: { fontStyle: "bold" } },
           { content: (fd.get("customer-name") || ""), styles: { fontStyle: "normal" } },
           { content: "Rubberware Details:", styles: { fontStyle: "bold" } },
-          { content: "See individual checklist items", styles: { fontStyle: "normal" } }
+          { content: "See checklist items", styles: { fontStyle: "normal" } }
         ]
       ];
       
@@ -590,11 +635,11 @@
           currentY = pdf.lastAutoTable.finalY + 20;
           
           pdf.setFont("helvetica", "bold");
-          pdf.text("Checklist Items:", 40, currentY);
+          pdf.text("Checklist Items (Rubberware Data):", 40, currentY);
           currentY += 10;
           pdf.autoTable({
             startY: currentY,
-            head: [["Item", "Status", "Comments", "Rubberware Details"]],
+            head: [["Item Name", "Quantity", "Size", "Item Install Date", "Expiry Date"]],
             body: checklistData,
             styles: { fontSize: 10, cellPadding: 5 },
             headStyles: { fillColor: "#002B5C", textColor: "#fff" },
@@ -767,16 +812,90 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    /* ALL FARMS VIEW */
-    function showAllFarms() {
-      document.getElementById("form-container").style.display = "none";
-      document.getElementById("record-container").style.display = "none";
-      document.getElementById("all-farms-container").style.display = "block";
-      loadAllFarms();
+    /* ALL FARMS VIEW: Build a table with columns:
+       Dairy Number / Item Name / Item Size / Item Quantity / Item Install Date / Expiry Date */
+    async function loadAllFarms() {
+      const farmsGrid = document.getElementById("farms-grid");
+      farmsGrid.innerHTML = ""; // Clear existing content
+      const storageRef = storage.ref("Agora schedule 3 farm details");
+      try {
+        const allFiles = await getAllFarmFiles(storageRef);
+        if(allFiles.length === 0) {
+          farmsGrid.innerHTML = "<p>No farms found.</p>";
+          return;
+        }
+        // Create a table element
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        ["Dairy Number", "Item Name", "Item Size", "Item Quantity", "Item Install Date", "Expiry Date"].forEach(text => {
+          const th = document.createElement("th");
+          th.textContent = text;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        // For each file, load JSON and extract checklistItems for display
+        const promises = allFiles.map(async fileRef => {
+          try {
+            const url = await fileRef.getDownloadURL();
+            const response = await fetch(url);
+            const data = await response.json();
+            const dairyNumber = fileRef.name.endsWith(".json") ? fileRef.name.replace(".json", "") : fileRef.name;
+            if (data.checklistItems && Array.isArray(data.checklistItems)) {
+              // If checklistItems is an array (as saved in our update function)
+              return data.checklistItems.map(item => ({ dairyNumber, ...item }));
+            } else if (data.checklistItems && typeof data.checklistItems === "object") {
+              // If stored as object keyed by item name, convert to array
+              return Object.entries(data.checklistItems).map(([itemName, details]) => ({
+                dairyNumber,
+                itemName,
+                quantity: details.quantity || "",
+                size: details.size || "",
+                itemInstall: details.itemInstall || "",
+                expiryDate: details.expiryDate || ""
+              }));
+            } else {
+              return [];
+            }
+          } catch(e) {
+            console.error("Error loading farm details:", e);
+            return [];
+          }
+        });
+        const farmsArrays = await Promise.all(promises);
+        const allRows = farmsArrays.flat();
+        allRows.forEach(row => {
+          const tr = document.createElement("tr");
+          const tdDairy = document.createElement("td");
+          tdDairy.textContent = row.dairyNumber;
+          tr.appendChild(tdDairy);
+          const tdItemName = document.createElement("td");
+          tdItemName.textContent = row.itemName || "";
+          tr.appendChild(tdItemName);
+          const tdSize = document.createElement("td");
+          tdSize.textContent = row.size || "";
+          tr.appendChild(tdSize);
+          const tdQuantity = document.createElement("td");
+          tdQuantity.textContent = row.quantity || "";
+          tr.appendChild(tdQuantity);
+          const tdInstall = document.createElement("td");
+          tdInstall.textContent = row.itemInstall || "";
+          tr.appendChild(tdInstall);
+          const tdExpiry = document.createElement("td");
+          tdExpiry.textContent = row.expiryDate || "";
+          tr.appendChild(tdExpiry);
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        farmsGrid.appendChild(table);
+      } catch (error) {
+        console.error("Error loading all farms:", error);
+      }
     }
     
-    // This helper function retrieves all files from the specified storage reference,
-    // including any files in subfolders.
+    // Helper: Recursively get files from a storage reference (including subfolders)
     async function getAllFarmFiles(storageRef) {
       let allFiles = [];
       try {
@@ -792,47 +911,30 @@
       return allFiles;
     }
     
-    async function loadAllFarms() {
-      const farmsGrid = document.getElementById("farms-grid");
-      farmsGrid.innerHTML = "";
-      const storageRef = storage.ref("Agora schedule 3 farm details");
-      try {
-        const allFiles = await getAllFarmFiles(storageRef);
-        if(allFiles.length === 0) {
-          farmsGrid.innerHTML = "<p>No farms found.</p>";
-          return;
-        }
-        // For each file, load JSON details and create a farm box
-        const promises = allFiles.map(async fileRef => {
-          try {
-            const url = await fileRef.getDownloadURL();
-            const response = await fetch(url);
-            const data = await response.json();
-            // If file name ends with ".json" remove it; otherwise use as is.
-            const dairyNumber = fileRef.name.endsWith(".json") ? fileRef.name.replace(".json", "") : fileRef.name;
-            return { dairyNumber, data };
-          } catch(e) {
-            console.error("Error loading farm details:", e);
-            return null;
-          }
-        });
-        const farms = await Promise.all(promises);
-        farms.filter(f => f).forEach(farm => {
-          const box = document.createElement("div");
-          box.classList.add("farm-box");
-          box.innerHTML = `<h3>${farm.data.farmName || farm.dairyNumber}</h3>
-          <p><strong>Dairy Company:</strong> ${farm.data.dairyCompany || ""}</p>
-          <p><strong>Install Date:</strong> ${farm.data.installDate || ""}</p>
-          <p><strong>Replacement Due:</strong> ${farm.data.replacementDue || ""}</p>`;
-          farmsGrid.appendChild(box);
-        });
-      } catch (error) {
-        console.error("Error loading all farms:", error);
-      }
+    function showAllFarms() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("all-farms-container").style.display = "block";
+      loadAllFarms();
     }
     
     function backToFormSchedule3() {
       document.getElementById("all-farms-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    function filterRecordsSchedule3() {
+      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
+      const recordList = document.getElementById("record-list");
+      const links = recordList.getElementsByTagName("a");
+      for (let i = 0; i < links.length; i++) {
+        const txt = links[i].textContent || links[i].innerText;
+        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
+      }
+    }
+    
+    function goBackSchedule3() {
+      document.getElementById("record-container").style.display = "none";
       document.getElementById("form-container").style.display = "block";
     }
     
