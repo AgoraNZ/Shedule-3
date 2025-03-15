@@ -85,6 +85,8 @@
         <label for="dairy-number">Dairy Number:</label>
         <input type="text" class="form-control" id="dairy-number" name="dairy-number" 
                onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <!-- Uncomment the line below to add a manual "Load Farm Details" button for debugging -->
+        <!-- <button type="button" onclick="fetchFarmDetails()">Load Farm Details</button> -->
         <label for="dairy-company">Dairy Company:</label>
         <input type="text" class="form-control" id="dairy-company" name="dairy-company" 
                list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
@@ -232,17 +234,19 @@
       });
     }
     
-    // Auto-populate farm details for Schedule3 using the file named dairyNumber+"schedule3.json"
+    // Auto-populate farm details for Schedule3 using file dairyNumber + "schedule3.json"
     async function fetchFarmDetails() {
       const dairyNumberRaw = document.getElementById('dairy-number').value.trim();
       if (!dairyNumberRaw) return;
       const key = dairyNumberRaw + "schedule3";
+      console.log("Fetching farm details for key:", key);
       const storageRef = storage.ref(`Agora Farm Details/${key}.json`);
       try {
         const url = await storageRef.getDownloadURL();
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch farm details');
         const data = await response.json();
+        console.log("Farm details fetched:", data);
         if (data) {
           document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
           document.getElementById('address').value = toTitleCase(data.address || '');
@@ -253,7 +257,7 @@
           document.getElementById('visit-date').value = data.visitDate || "";
         }
       } catch (error) {
-        console.log('No farm details found or error:', error);
+        console.error('Error in fetchFarmDetails:', error);
       }
     }
     
@@ -261,6 +265,7 @@
       const dairyNumberRaw = document.getElementById('dairy-number').value.trim();
       if (!dairyNumberRaw) return;
       const key = dairyNumberRaw + "schedule3";
+      console.log("Checking or creating record with key:", key);
       let record = await db.forms.get(key);
       if (!record) {
         record = { dairyNumber: key, formData: {}, creationTime: Date.now() };
@@ -270,7 +275,7 @@
     async function handleDairyNumberBlur() {
       const dairyNumberRaw = document.getElementById('dairy-number').value.trim();
       if (!dairyNumberRaw) return;
-      fetchFarmDetails();
+      await fetchFarmDetails();
       await checkOrCreateFormRecord();
     }
     
@@ -742,7 +747,7 @@
               await uploadSinglePDFSchedule3(key, fileName, pdfBlob);
               console.log("PDF uploaded to Agora schedule 3 Customers folder successfully");
             } catch(e) {
-              console.error("PDF upload to Agora schedule 3 Customers folder failed:", e);
+              console.error("PDF upload failed:", e);
               db.pdfQueue.add({ dairyNumber: key, fileName, pdfBlob, uploaded: false, target: "schedule3" });
             }
             db.forms.delete(key);
