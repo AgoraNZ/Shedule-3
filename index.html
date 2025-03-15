@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agora Schedule 3 – All Farms</title>
+  <meta charset="UTF-8">
+  <title>All Farms – Agora Schedule 3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #eef;
+      background-color: #eef;
       padding: 20px;
+      margin: 0;
     }
     .container {
       max-width: 900px;
@@ -58,35 +59,15 @@
 <body>
   <div class="container">
     <h1>All Farms – Agora Schedule 3</h1>
-    <p>This page loads farm details from the folder <strong>Agora schedule 3 farm details</strong> using the same method as the main form.</p>
+    <p>This page attempts to load farm details from your folder using dairy numbers 1 through 100.</p>
     <button class="load-btn" onclick="loadAllFarms()">Load All Farms</button>
     <div id="output"></div>
   </div>
   
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Initialize Firebase using your exact configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
-      authDomain: "dairy-farm-record-system.firebaseapp.com",
-      projectId: "dairy-farm-record-system",
-      storageBucket: "dairy-farm-record-system.appspot.com",
-      messagingSenderId: "422124188212",
-      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-
-    // Hard-coded list of dairy numbers (replace with your dynamic list if available)
-    const dairyNumbers = ["49", "50", "51"]; // Example dairy numbers
-
-    // Load details for all farms in the list.
     async function loadAllFarms() {
       const output = document.getElementById("output");
       output.innerHTML = "<p>Loading farm details...</p>";
-      
       let tableHTML = `<table>
         <thead>
           <tr>
@@ -102,23 +83,25 @@
         </thead>
         <tbody>`;
       
-      // For each dairy number, load its JSON file
-      for (const dairy of dairyNumbers) {
-        const filePath = `Agora schedule 3 farm details/${dairy}.json`;
-        const fileRef = storage.ref(filePath);
+      // Loop over a range of dairy numbers; adjust the range as needed.
+      for (let i = 1; i <= 100; i++) {
+        const dairy = i.toString();
+        // Build the URL exactly as your file is stored.
+        const fileURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/" +
+                        "Agora%20schedule%203%20farm%20details%2F" + dairy + ".json?alt=media";
         try {
-          const url = await fileRef.getDownloadURL();
-          console.log("Loading file for dairy", dairy, "URL:", url);
-          const res = await fetch(url);
-          if (!res.ok) throw new Error("HTTP error " + res.status);
+          const res = await fetch(fileURL);
+          if (!res.ok) {
+            console.warn("File not found for dairy", dairy);
+            continue;
+          }
           const data = await res.json();
-          console.log("Data for dairy", dairy, data);
-          // Build a string for checklistExtra details
+          console.log("Loaded data for dairy", dairy, data);
           let checklistStr = "";
           if (data.checklistExtra) {
             for (const key in data.checklistExtra) {
               const extra = data.checklistExtra[key];
-              checklistStr += `<strong>${key}:</strong> Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}<br>`;
+              checklistStr += `<strong>${key}</strong>: Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}<br>`;
             }
           } else {
             checklistStr = "N/A";
