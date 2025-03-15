@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agora Schedule 3 – Change Dates</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test – Farm Details from Working Folder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
   <style>
     body {
       background-color: #d2d7dd;
@@ -26,20 +26,7 @@
     .detail-item {
       margin-bottom: 8px;
     }
-    .checklist-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    .checklist-table th, .checklist-table td {
-      border: 1px solid #ccc;
-      padding: 5px;
-      text-align: left;
-    }
-    .checklist-table th {
-      background-color: #f0f0f0;
-    }
-    .load-btn, .back-btn {
+    .back-btn, .load-btn {
       background-color: #002B5C;
       color: #fff;
       border: none;
@@ -56,39 +43,38 @@
 </head>
 <body>
   <div class="container" id="input-container">
-    <h1>Agora Schedule 3 – Change Dates</h1>
-    <p>Enter the Dairy Number (e.g. 49) to load its farm details.</p>
+    <h1>Test – Load Farm Details</h1>
+    <p>Enter the Dairy Number (e.g. 49) to load farm details from the working folder.</p>
     <div class="mb-3">
       <label for="dairy-number" class="form-label">Dairy Number</label>
-      <input type="text" class="form-control" id="dairy-number" placeholder="e.g. 49">
+      <input type="text" class="form-control" id="dairy-number" placeholder="e.g. 49" />
     </div>
     <button class="load-btn" onclick="loadFarmDetails()">Load Farm Details</button>
   </div>
 
   <div class="container" id="details-container" style="display: none;">
     <h2>Farm Details</h2>
-    <div class="detail-item"><strong>Dairy Number:</strong> <span id="display-dairy-number"></span></div>
-    <div class="detail-item"><strong>Dairy Company:</strong> <span id="display-dairy-company"></span></div>
-    <div class="detail-item"><strong>Address:</strong> <span id="display-address"></span></div>
-    <div class="detail-item"><strong>Customer Name:</strong> <span id="display-customer-name"></span></div>
-    <div class="detail-item"><strong>Region:</strong> <span id="display-region"></span></div>
-    <div class="detail-item"><strong>Farm Name:</strong> <span id="display-farm-name"></span></div>
-    <div class="detail-item"><strong>Island:</strong> <span id="display-island"></span></div>
-    
-    <h3 class="mt-4">Checklist Extra Details</h3>
-    <table class="checklist-table">
-      <thead>
-        <tr>
-          <th>Checklist Item</th>
-          <th>Install Date</th>
-          <th>Replacement Due</th>
-          <th>Rubberware Size</th>
-        </tr>
-      </thead>
-      <tbody id="checklist-body">
-        <!-- Data will be inserted here -->
-      </tbody>
-    </table>
+    <div class="detail-item">
+      <strong>Dairy Number:</strong> <span id="display-dairy-number"></span>
+    </div>
+    <div class="detail-item">
+      <strong>Dairy Company:</strong> <span id="display-dairy-company"></span>
+    </div>
+    <div class="detail-item">
+      <strong>Address:</strong> <span id="display-address"></span>
+    </div>
+    <div class="detail-item">
+      <strong>Customer Name:</strong> <span id="display-customer-name"></span>
+    </div>
+    <div class="detail-item">
+      <strong>Region:</strong> <span id="display-region"></span>
+    </div>
+    <div class="detail-item">
+      <strong>Farm Name:</strong> <span id="display-farm-name"></span>
+    </div>
+    <div class="detail-item">
+      <strong>Island:</strong> <span id="display-island"></span>
+    </div>
     <button class="back-btn" onclick="backToInput()">Back</button>
   </div>
 
@@ -96,7 +82,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Initialize Firebase (use your actual configuration)
+    // Initialize Firebase with your configuration (this folder is the working one)
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -108,15 +94,15 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
 
-    // Load farm details for the given dairy number
+    // Load farm details from the working folder "Agora Farm Details"
     async function loadFarmDetails() {
       const dairyNumber = document.getElementById("dairy-number").value.trim();
       if (!dairyNumber) {
         alert("Please enter a Dairy Number.");
         return;
       }
-      // Build the reference using the exact folder name
-      const filePath = `Agora schedule 3 farm details/${dairyNumber}.json`;
+      // Build the file path exactly as your working code does:
+      const filePath = `Agora Farm Details/${dairyNumber}.json`;
       const fileRef = storage.ref(filePath);
       try {
         const url = await fileRef.getDownloadURL();
@@ -144,28 +130,11 @@
       document.getElementById("display-farm-name").textContent = data.farmName || "N/A";
       document.getElementById("display-island").textContent = data.island || "N/A";
 
-      const tbody = document.getElementById("checklist-body");
-      tbody.innerHTML = "";
-      if (data.checklistExtra) {
-        for (const key in data.checklistExtra) {
-          const extra = data.checklistExtra[key];
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${key}</td>
-            <td>${extra.installDate || "N/A"}</td>
-            <td>${extra.replacementDue || "N/A"}</td>
-            <td>${extra.rubberwareSize || "N/A"}</td>
-          `;
-          tbody.appendChild(tr);
-        }
-      } else {
-        tbody.innerHTML = `<tr><td colspan="4">No checklist extra details found.</td></tr>`;
-      }
       document.getElementById("input-container").style.display = "none";
       document.getElementById("details-container").style.display = "block";
     }
 
-    // Go back to the input screen
+    // Return to input screen
     function backToInput() {
       document.getElementById("details-container").style.display = "none";
       document.getElementById("input-container").style.display = "block";
