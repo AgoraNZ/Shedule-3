@@ -1,143 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Test – Farm Details from Working Folder</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+  <meta charset="UTF-8">
+  <title>All Farms – Agora Schedule 3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      background-color: #d2d7dd;
       font-family: Arial, sans-serif;
+      background-color: #eef;
       padding: 20px;
     }
     .container {
       max-width: 800px;
       margin: auto;
-      background-color: #fff;
-      padding: 30px;
+      background: #fff;
+      padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    h1, h2 {
+    h1 {
       text-align: center;
       color: #002B5C;
     }
-    .detail-item {
-      margin-bottom: 8px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
     }
-    .back-btn, .load-btn {
-      background-color: #002B5C;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    .error {
+      color: red;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #008CBA;
       color: #fff;
       border: none;
-      padding: 10px 20px;
-      margin-top: 20px;
-      cursor: pointer;
       border-radius: 5px;
-      display: block;
-      width: 200px;
-      margin-left: auto;
-      margin-right: auto;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #006F8E;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="input-container">
-    <h1>Test – Load Farm Details</h1>
-    <p>Enter the Dairy Number (e.g. 49) to load farm details from the working folder.</p>
-    <div class="mb-3">
-      <label for="dairy-number" class="form-label">Dairy Number</label>
-      <input type="text" class="form-control" id="dairy-number" placeholder="e.g. 49" />
-    </div>
-    <button class="load-btn" onclick="loadFarmDetails()">Load Farm Details</button>
+  <div class="container">
+    <h1>All Farms – Agora Schedule 3</h1>
+    <button onclick="loadAllFarms()">Load All Farms</button>
+    <div id="output"></div>
   </div>
-
-  <div class="container" id="details-container" style="display: none;">
-    <h2>Farm Details</h2>
-    <div class="detail-item">
-      <strong>Dairy Number:</strong> <span id="display-dairy-number"></span>
-    </div>
-    <div class="detail-item">
-      <strong>Dairy Company:</strong> <span id="display-dairy-company"></span>
-    </div>
-    <div class="detail-item">
-      <strong>Address:</strong> <span id="display-address"></span>
-    </div>
-    <div class="detail-item">
-      <strong>Customer Name:</strong> <span id="display-customer-name"></span>
-    </div>
-    <div class="detail-item">
-      <strong>Region:</strong> <span id="display-region"></span>
-    </div>
-    <div class="detail-item">
-      <strong>Farm Name:</strong> <span id="display-farm-name"></span>
-    </div>
-    <div class="detail-item">
-      <strong>Island:</strong> <span id="display-island"></span>
-    </div>
-    <button class="back-btn" onclick="backToInput()">Back</button>
-  </div>
-
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script>
-    // Initialize Firebase with your configuration (this folder is the working one)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
-      authDomain: "dairy-farm-record-system.firebaseapp.com",
-      projectId: "dairy-farm-record-system",
-      storageBucket: "dairy-farm-record-system.appspot.com",
-      messagingSenderId: "422124188212",
-      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-
-    // Load farm details from the working folder "Agora Farm Details"
-    async function loadFarmDetails() {
-      const dairyNumber = document.getElementById("dairy-number").value.trim();
-      if (!dairyNumber) {
-        alert("Please enter a Dairy Number.");
-        return;
-      }
-      // Build the file path exactly as your working code does:
-      const filePath = `Agora Farm Details/${dairyNumber}.json`;
-      const fileRef = storage.ref(filePath);
+    // This function uses the Firebase Storage REST API to list files from your folder.
+    async function loadAllFarms() {
+      const output = document.getElementById("output");
+      output.innerHTML = "<p>Loading farm details...</p>";
+      // Construct the REST URL to list files in the folder.
+      // Note: Spaces must be encoded as %20.
+      const listURL = "https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o?delimiter=/&prefix=Agora%20schedule%203%20farm%20details%2F";
       try {
-        const url = await fileRef.getDownloadURL();
-        console.log("Download URL:", url);
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error("Failed to fetch farm details.");
+        const res = await fetch(listURL);
+        if (!res.ok) {
+          throw new Error("HTTP error " + res.status);
         }
-        const data = await response.json();
-        console.log("Farm Data:", data);
-        displayFarmDetails(dairyNumber, data);
+        const listData = await res.json();
+        console.log("List data:", listData);
+        if (!listData.items || listData.items.length === 0) {
+          output.innerHTML = "<p>No farm details found.</p>";
+          return;
+        }
+        let tableHTML = `<table>
+          <thead>
+            <tr>
+              <th>Dairy Number</th>
+              <th>Farm Name</th>
+              <th>Dairy Company</th>
+              <th>Address</th>
+              <th>Customer Name</th>
+              <th>Region</th>
+              <th>Island</th>
+              <th>Checklist Extra</th>
+            </tr>
+          </thead>
+          <tbody>`;
+        for (const item of listData.items) {
+          // item.name is URL encoded; decode it.
+          const decodedName = decodeURIComponent(item.name); // e.g. "Agora schedule 3 farm details/49.json"
+          // Extract the file name (e.g., "49.json") and dairy number (e.g., "49")
+          const fileName = decodedName.split("/").pop();
+          const dairyNumber = fileName.replace(".json", "");
+          // Build the file's public URL
+          const fileURL = `https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/${encodeURIComponent(decodedName)}?alt=media`;
+          try {
+            console.log("Fetching file:", fileName);
+            const fileRes = await fetch(fileURL);
+            if (!fileRes.ok) throw new Error("HTTP error " + fileRes.status);
+            const data = await fileRes.json();
+            console.log("Data for", fileName, ":", data);
+            // Build a string for checklistExtra details.
+            let checklistStr = "";
+            if (data.checklistExtra) {
+              for (const key in data.checklistExtra) {
+                const extra = data.checklistExtra[key];
+                checklistStr += `<strong>${key}</strong>: Install: ${extra.installDate || "N/A"}, Replacement Due: ${extra.replacementDue || "N/A"}, Rubberware: ${extra.rubberwareSize || "N/A"}<br>`;
+              }
+            }
+            tableHTML += `<tr>
+              <td>${dairyNumber}</td>
+              <td>${data.farmName || "N/A"}</td>
+              <td>${data.dairyCompany || "N/A"}</td>
+              <td>${data.address || "N/A"}</td>
+              <td>${data.customerName || "N/A"}</td>
+              <td>${data.region || "N/A"}</td>
+              <td>${data.island || "N/A"}</td>
+              <td>${checklistStr}</td>
+            </tr>`;
+          } catch (e) {
+            console.error("Error fetching data for file:", decodedName, e);
+            tableHTML += `<tr><td colspan="8" class="error">Error fetching data for ${dairyNumber}: ${e.message}</td></tr>`;
+          }
+        }
+        tableHTML += "</tbody></table>";
+        output.innerHTML = tableHTML;
       } catch (error) {
-        console.error("Error loading farm details:", error);
-        alert("Error loading farm details for dairy number " + dairyNumber);
+        console.error("Error listing farm files:", error);
+        output.innerHTML = `<p class="error">Error listing farm details: ${error.message}</p>`;
       }
-    }
-
-    // Display the farm details on the page
-    function displayFarmDetails(dairyNumber, data) {
-      document.getElementById("display-dairy-number").textContent = dairyNumber;
-      document.getElementById("display-dairy-company").textContent = data.dairyCompany || "N/A";
-      document.getElementById("display-address").textContent = data.address || "N/A";
-      document.getElementById("display-customer-name").textContent = data.customerName || "N/A";
-      document.getElementById("display-region").textContent = data.region || "N/A";
-      document.getElementById("display-farm-name").textContent = data.farmName || "N/A";
-      document.getElementById("display-island").textContent = data.island || "N/A";
-
-      document.getElementById("input-container").style.display = "none";
-      document.getElementById("details-container").style.display = "block";
-    }
-
-    // Return to input screen
-    function backToInput() {
-      document.getElementById("details-container").style.display = "none";
-      document.getElementById("input-container").style.display = "block";
     }
   </script>
 </body>
