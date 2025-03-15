@@ -66,6 +66,7 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
+    <!-- Logo (same URL as in Firebase Storage) -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
          alt="Logo" class="logo" style="display: block; margin: 0 auto 20px; width: 250px;" />
     <h1>Agora Schedule 3 Form</h1>
@@ -126,7 +127,7 @@
     <div class="version">Version 1.1 (Agora Schedule 3)</div>
   </div>
   
-  <!-- RECORDS VIEW (kept from second code) -->
+  <!-- RECORDS VIEW (kept as in second code) -->
   <div id="record-container" class="record-container" style="display: none;">
     <h2>All Schedule 3 Records</h2>
     <div class="search-container">
@@ -144,7 +145,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    // Initialize Firebase and Dexie (using second code’s configuration)
+    // Initialize Firebase and Dexie (using same config and paths as in the Reporting form code)
     const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
@@ -256,6 +257,7 @@
     
     /* Create Schedule 3 Checklist Items (from first code) */
     function createSchedule3ChecklistItems() {
+      // Checklist items from first code:
       const checklistItems = [
         "Cluster to milk line",
         "Cluster short Pulse tubes",
@@ -448,24 +450,7 @@
           rubberwareLength: lengthInput ? lengthInput.value : "",
           rubberwareQuantity: qtyInput ? qtyInput.value : ""
         };
-        // Append extra info to comments if needed
-        const extraStr = `Install Date: ${extra.installDate} | Replacement Due: ${extra.replacementDueDate} | Rubberware: ${extra.rubberwareDimensions} / ${extra.rubberwareLength} / ${extra.rubberwareQuantity}`;
-        if (extraStr.trim() !== "Install Date:  | Replacement Due:  | Rubberware:  /  / ") {
-          comments += "\n" + extraStr;
-        }
-        let imagesBase64 = [];
-        const fileInputs = container.querySelectorAll('input[type="file"]');
-        for (let fi of fileInputs) {
-          if (fi.files && fi.files[0]) {
-            const base64 = await convertFileToBase64(fi.files[0]);
-            imagesBase64.push(base64);
-          }
-        }
-        if (status === "attention-required" && imagesBase64.length > 0) {
-          const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
-          comments += photoNote;
-        }
-        checklistItemsData[key] = { status, comments, extra, imagesBase64 };
+        checklistItemsData[key] = { status, comments, extra };
       }));
       data.checklistItems = checklistItemsData;
       
@@ -529,7 +514,7 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Build an array of checklist items (with extra details) for the PDF
+      // Build an array of checklist items (with extra details) from the form data
       const checklistContainers = document.getElementById("checklist-items").children;
       const itemsForPDF = [];
       Array.from(checklistContainers).forEach(container => {
@@ -583,8 +568,7 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        
-        // Add logo at top (using same URL as form)
+        // Add logo at top from same storage location
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -629,48 +613,38 @@
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
-          // Checklist Items Header
-          pdf.setFont("helvetica", "bold");
-          pdf.text("Checklist Items:", 40, currentY);
-          currentY += 20;
-          
-          // For each checklist item, print details in its own block
+          // Build checklist table data: header with three columns.
+          let checklistTableRows = [];
+          // For each checklist item, add two rows: one for main data and one for extra details.
           itemsForPDF.forEach(item => {
-            // Check for page break
-            if (currentY + 60 > pageHeight) {
-              pdf.addPage();
-              currentY = 40;
-            }
-            // Item title
-            pdf.setFont("helvetica", "bold");
-            pdf.text(item.itemName, 40, currentY);
-            currentY += 15;
-            pdf.setFont("helvetica", "normal");
-            pdf.text(`Status: ${item.status}`, 40, currentY);
-            currentY += 15;
-            pdf.text(`Comments: ${item.comments}`, 40, currentY);
-            currentY += 15;
-            // Extra details block
-            const extraLines = [];
-            if(item.extra.installDate) extraLines.push(`Install Date: ${item.extra.installDate}`);
-            if(item.extra.replacementDueDate) extraLines.push(`Replacement Due Date: ${item.extra.replacementDueDate}`);
-            if(item.extra.rubberwareDimensions) extraLines.push(`Dimensions: ${item.extra.rubberwareDimensions}`);
-            if(item.extra.rubberwareLength) extraLines.push(`Length: ${item.extra.rubberwareLength}`);
-            if(item.extra.rubberwareQuantity) extraLines.push(`Quantity: ${item.extra.rubberwareQuantity}`);
-            if(extraLines.length > 0) {
-              extraLines.forEach(line => {
-                if (currentY + 15 > pageHeight) {
-                  pdf.addPage();
-                  currentY = 40;
-                }
-                pdf.text(line, 50, currentY);
-                currentY += 15;
-              });
-            }
-            currentY += 10; // Space between items
+            let mainRow = [item.itemName, item.status, item.comments];
+            let extraRow = [
+              "", // leave first cell blank
+              "Install: " + (item.extra.installDate || ""),
+              "Expiry: " + (item.extra.replacementDueDate || "") +
+                " | Dim: " + (item.extra.rubberwareDimensions || "") +
+                " | L: " + (item.extra.rubberwareLength || "") +
+                " | Qty: " + (item.extra.rubberwareQuantity || "")
+            ];
+            checklistTableRows.push(mainRow);
+            checklistTableRows.push(extraRow);
           });
           
-          // Finalize: output PDF file
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Checklist Items:", 40, currentY);
+          currentY += 10;
+          
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Item", "Status", "Comments / Extra Details"]],
+            body: checklistTableRows,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          // Finalize: output PDF file using naming format {dairy number}Schedule3.pdf
           (async function(){
             const pdfBlob = pdf.output("blob");
             const fileName = `${dairyNumber}Schedule3.pdf`;
