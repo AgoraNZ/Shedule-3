@@ -56,30 +56,12 @@
       border: 2px solid #ccc;
     }
     .calibration-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
-    /* Pilot Checks Page Styling */
-    .pilot-checks-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-    }
-    .farm-checks {
-      background-color: #f8f9fa;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin: 10px;
-      padding: 15px;
-      width: 45%;
-      min-width: 280px;
-    }
-    .farm-checks ul { list-style: none; padding: 0; }
-    .farm-checks li { padding: 5px 0; border-bottom: 1px solid #ddd; }
-    .farm-checks li:last-child { border-bottom: none; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
   </style>
 </head>
 <body>
   <!-- MAIN FORM CONTAINER -->
-  <!-- Note: The form id is "schedule3-form" -->
+  <!-- The form id remains "schedule3-form" for Schedule 3 -->
   <div class="container" id="form-container">
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Reporting Form</h1>
@@ -155,7 +137,6 @@
       <div style="text-align: center;">
         <button type="button" onclick="generatePDF()">Generate PDF</button>
         <button type="button" onclick="viewRecords()">View All Records</button>
-        <button type="button" onclick="pilotChecks()">Pilot Checks</button>
       </div>
     </form>
     <div class="version">Version 6.1 (Agora)</div>
@@ -171,32 +152,6 @@
     <button class="back-button" onclick="goBack()">Back to Checklist</button>
   </div>
   
-  <!-- PILOT CHECKS PAGE -->
-  <div id="pilot-checks-page" class="record-container" style="display: none;">
-    <h2>Upcoming Agora Shed Checks</h2>
-    <div class="pilot-checks-container">
-      <!-- Sample checks -->
-      <div class="farm-checks">
-        <h3>Brandmar Farm</h3>
-        <h4>Upcoming Checks</h4>
-        <ul>
-          <li>Annual Check – Due: 19th June 2025</li>
-        </ul>
-        <h4>Completed Checks</h4>
-        <ul>
-          <li>Install Date: 19th June 2024</li>
-          <li>2 Week Check: 3rd July 2024</li>
-          <li>3 Month Check: 19th Sep 2024</li>
-          <li>6 Month Check: 19th Dec 2024</li>
-        </ul>
-      </div>
-      <!-- Additional farms… -->
-    </div>
-    <div style="text-align: center;">
-      <button class="back-button" onclick="backToForm()">Back to Checklist</button>
-    </div>
-  </div>
-  
   <!-- SCRIPTS -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
@@ -205,7 +160,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    /* Firebase & Dexie Init */
+    /* FIREBASE & DEXIE INIT */
     const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
@@ -244,6 +199,7 @@
       el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
     }
     
+    // Auto-populate dairy company datalist and update new companies as needed
     async function setupDairyCompanyDatalist() {
       const defaultCompanies = [
         "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
@@ -274,10 +230,10 @@
       });
     }
     
+    // Auto-populate farm details from Firebase folder "Agora Farm Details"
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
-      // Ensure using the same folder as before
       const storageRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
       try {
         const url = await storageRef.getDownloadURL();
@@ -505,7 +461,7 @@
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
       data["dairy-number"] = dairyNumber;  // Ensure we keep dairy number
     
-      // Gather the checklist items from Health & Safety and Schedule 3 Checklist sections
+      // Gather checklist items from Health & Safety and Schedule 3 Checklist sections
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children
@@ -551,7 +507,7 @@
       });
     }
     
-    // Save farm details in Firebase (drawing from same folder "Agora Farm Details")
+    // Save farm details to Firebase from the same folder ("Agora Farm Details")
     async function saveFarmDetailsToFirebase(formData) {
       const dairyNumber = formData.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -575,7 +531,7 @@
       }
     }
     
-    // PDF Upload for Schedule 3 (target remains "schedule3")
+    // PDF upload logic for Schedule 3
     window.addEventListener("online", uploadPendingPDFs);
     
     async function uploadPendingPDFs() {
@@ -810,7 +766,6 @@
     
     function viewRecords() {
       document.getElementById("form-container").style.display = "none";
-      document.getElementById("pilot-checks-page").style.display = "none";
       document.getElementById("record-container").style.display = "block";
       loadAllRecords();
     }
@@ -901,17 +856,6 @@
     
     function goBack() {
       document.getElementById("record-container").style.display = "none";
-      document.getElementById("form-container").style.display = "block";
-    }
-    
-    function pilotChecks() {
-      document.getElementById("form-container").style.display = "none";
-      document.getElementById("record-container").style.display = "none";
-      document.getElementById("pilot-checks-page").style.display = "block";
-    }
-    
-    function backToForm() {
-      document.getElementById("pilot-checks-page").style.display = "none";
       document.getElementById("form-container").style.display = "block";
     }
     
