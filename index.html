@@ -61,7 +61,6 @@
 </head>
 <body>
   <!-- MAIN FORM CONTAINER -->
-  <!-- The form id remains "schedule3-form" for Schedule 3 -->
   <div class="container" id="form-container">
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Reporting Form</h1>
@@ -199,7 +198,7 @@
       el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
     }
     
-    // Auto-populate dairy company datalist and update new companies as needed
+    // Setup dairy company datalist
     async function setupDairyCompanyDatalist() {
       const defaultCompanies = [
         "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
@@ -230,16 +229,19 @@
       });
     }
     
-    // Auto-populate farm details from Firebase folder "Agora Farm Details"
+    // Fetch farm details from "Agora Farm Details" folder and auto-populate
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
+      console.log("Fetching farm details for dairy number:", dairyNumber);
       if (!dairyNumber) return;
       const storageRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
       try {
         const url = await storageRef.getDownloadURL();
+        console.log("Farm details URL:", url);
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch farm details');
         const data = await response.json();
+        console.log("Farm details data:", data);
         if (data) {
           document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
           document.getElementById('address').value = toTitleCase(data.address || '');
@@ -265,7 +267,7 @@
     async function handleDairyNumberBlur() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
-      fetchFarmDetails();
+      await fetchFarmDetails();
       await checkOrCreateFormRecord();
     }
     
@@ -459,9 +461,9 @@
       const form = document.getElementById("schedule3-form");
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      data["dairy-number"] = dairyNumber;  // Ensure we keep dairy number
+      data["dairy-number"] = dairyNumber;
     
-      // Gather checklist items from Health & Safety and Schedule 3 Checklist sections
+      // Gather checklist items from Health & Safety and Schedule 3 Checklist
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children
@@ -507,7 +509,7 @@
       });
     }
     
-    // Save farm details to Firebase from the same folder ("Agora Farm Details")
+    // Save farm details to Firebase from "Agora Farm Details"
     async function saveFarmDetailsToFirebase(formData) {
       const dairyNumber = formData.get("dairy-number") || "";
       if (!dairyNumber) return;
