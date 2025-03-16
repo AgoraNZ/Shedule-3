@@ -88,7 +88,7 @@
 </head>
 <body>
   <!-- MAIN FORM CONTAINER -->
-  <!-- Note: The form id has been changed to "schedule3-form" so that the new checklist functions and save/clear functions work correctly. -->
+  <!-- The form id is "schedule3-form" for the Schedule 3 version -->
   <div class="container" id="form-container">
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Reporting Form</h1>
@@ -154,7 +154,7 @@
         <div id="health-safety-top"></div>
       </div>
       
-      <!-- Schedule3 Checklist Section -->
+      <!-- Schedule 3 Checklist Section -->
       <div class="section mb-4">
         <h2>Schedule 3 Checklist</h2>
         <div id="checklist-items"></div>
@@ -276,7 +276,7 @@
         <button type="button" onclick="pilotChecks()">Pilot Checks</button>
       </div>
     </form>
-    <div class="version">Version 6.1 (Agora)</div>
+    <div class="version">Version 1.3 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -474,7 +474,52 @@
       await checkOrCreateFormRecord();
     }
     
-    /* New Checklist Items for Schedule 3 */
+    /* Health & Safety Checklist */
+    function createHealthSafetyItems(containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      const itemContainer = document.createElement("div");
+      itemContainer.classList.add("checklist-item");
+      const label = document.createElement("label");
+      label.textContent = "Health & Safety Notes";
+      itemContainer.appendChild(label);
+      const statusSelect = document.createElement("select");
+      statusSelect.classList.add("form-select");
+      statusSelect.name = "status-health-safety-notes";
+      statusSelect.innerHTML = `
+        <option value="ok">OK</option>
+        <option value="attention-required">Attention Required</option>
+        <option value="na">N/A</option>
+        <option value="not-checked">Not Checked</option>
+      `;
+      itemContainer.appendChild(statusSelect);
+      const commentsInput = document.createElement("input");
+      commentsInput.type = "text";
+      commentsInput.classList.add("form-control");
+      commentsInput.name = "comments-health-safety-notes";
+      commentsInput.placeholder = "Comments";
+      commentsInput.setAttribute("spellcheck", "true");
+      commentsInput.setAttribute("autocorrect", "on");
+      itemContainer.appendChild(commentsInput);
+      for (let i = 0; i < 2; i++) {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.classList.add("form-control", "image-upload");
+        itemContainer.appendChild(fileInput);
+        const preview = document.createElement("img");
+        preview.classList.add("image-preview");
+        itemContainer.appendChild(preview);
+      }
+      statusSelect.addEventListener("change", () => {
+        const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(inp => {
+          inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+        });
+      });
+      container.appendChild(itemContainer);
+    }
+    
+    /* Schedule 3 Checklist Items */
     function createSchedule3ChecklistItems() {
       const schedule3Items = [
         "Cluster to milk line",
@@ -518,7 +563,7 @@
         commentsInput.setAttribute("autocorrect", "on");
         itemDiv.appendChild(commentsInput);
 
-        // Two file inputs w/ previews
+        // Two file inputs with previews
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement('input');
           fileInput.type = 'file';
@@ -543,7 +588,7 @@
         installInput.name = `install-${item}`;
         extraDiv.appendChild(installInput);
 
-        // Replacement Date
+        // Replacement Due Date
         const replacementLabel = document.createElement('label');
         replacementLabel.textContent = 'Replacement Due Date:';
         extraDiv.appendChild(replacementLabel);
@@ -553,7 +598,7 @@
         replacementInput.name = `replacement-${item}`;
         extraDiv.appendChild(replacementInput);
 
-        // Dimensions, Length, Qty
+        // Dimensions, Length, Qty fields
         const rubberwareDiv = document.createElement('div');
         rubberwareDiv.style.display = "flex";
         rubberwareDiv.style.gap = "5px";
@@ -596,7 +641,132 @@
       });
     }
     
-    /* New CLEAR & SAVE functions for Schedule 3 */
+    /* Silo Checklist */
+    function createSiloChecklist() {
+      const siloItems = [
+        "Inlet Valve", "Non-Return Valve", "Spray Ball", "Agitator",
+        "Silo Door", "Manhole Seal", "Vat Outlet", "Walls in Silo"
+      ];
+      const container = document.getElementById("silo-checklist");
+      container.innerHTML = "";
+      siloItems.forEach(item => {
+        const itemContainer = document.createElement("div");
+        itemContainer.classList.add("checklist-item");
+        const label = document.createElement("label");
+        label.textContent = item;
+        itemContainer.appendChild(label);
+        const statusSelect = document.createElement("select");
+        statusSelect.classList.add("form-select");
+        statusSelect.name = `status-${item}`;
+        statusSelect.innerHTML = `
+          <option value="ok">OK</option>
+          <option value="attention-required">Attention Required</option>
+          <option value="na">N/A</option>
+          <option value="not-checked">Not Checked</option>
+        `;
+        itemContainer.appendChild(statusSelect);
+        const commentsInput = document.createElement("input");
+        commentsInput.type = "text";
+        commentsInput.classList.add("form-control");
+        commentsInput.name = `comments-${item}`;
+        commentsInput.placeholder = "Comments";
+        commentsInput.setAttribute("spellcheck", "true");
+        commentsInput.setAttribute("autocorrect", "on");
+        itemContainer.appendChild(commentsInput);
+        for (let i = 0; i < 2; i++) {
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.classList.add("form-control", "image-upload");
+          itemContainer.appendChild(fileInput);
+          const preview = document.createElement("img");
+          preview.classList.add("image-preview");
+          itemContainer.appendChild(preview);
+        }
+        statusSelect.addEventListener("change", () => {
+          const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+          fileInputs.forEach(inp => {
+            inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+          });
+        });
+        container.appendChild(itemContainer);
+      });
+    }
+    
+    /* Temperature Sensor Item */
+    function createTemperatureSensorItem() {
+      const container = document.getElementById("temperature-sensors-container");
+      const sensorItem = document.createElement("div");
+      sensorItem.classList.add("checklist-item");
+      const mainLabel = document.createElement("label");
+      mainLabel.textContent = "Temperature Sensor";
+      sensorItem.appendChild(mainLabel);
+      const statusSelect = document.createElement("select");
+      statusSelect.classList.add("form-select");
+      statusSelect.name = "tempSensor-status";
+      statusSelect.innerHTML = `
+        <option value="ok">OK</option>
+        <option value="attention-required">Attention Required</option>
+        <option value="na">N/A</option>
+        <option value="not-checked">Not Checked</option>
+      `;
+      sensorItem.appendChild(statusSelect);
+      
+      const extraContainer = document.createElement("div");
+      extraContainer.classList.add("temp-extra-container");
+      // Sensor Type
+      const sensorTypeLabel = document.createElement("label");
+      sensorTypeLabel.textContent = "Sensor Type (e.g. Plant Inlet Temp):";
+      extraContainer.appendChild(sensorTypeLabel);
+      const sensorTypeInput = document.createElement("input");
+      sensorTypeInput.type = "text";
+      sensorTypeInput.classList.add("form-control");
+      sensorTypeInput.name = "tempSensor-type";
+      sensorTypeInput.placeholder = "Enter sensor type";
+      extraContainer.appendChild(sensorTypeInput);
+      // Tested Temperature
+      const testedLabel = document.createElement("label");
+      testedLabel.textContent = "Tested Temperature (°C):";
+      extraContainer.appendChild(testedLabel);
+      const testedInput = document.createElement("input");
+      testedInput.type = "text";
+      testedInput.classList.add("form-control");
+      testedInput.name = "tempSensor-tested";
+      extraContainer.appendChild(testedInput);
+      // System Temperature
+      const systemLabel = document.createElement("label");
+      systemLabel.textContent = "System Temperature (°C):";
+      extraContainer.appendChild(systemLabel);
+      const systemInput = document.createElement("input");
+      systemInput.type = "text";
+      systemInput.classList.add("form-control");
+      systemInput.name = "tempSensor-system";
+      extraContainer.appendChild(systemInput);
+      // Comments
+      const tempCommentsLabel = document.createElement("label");
+      tempCommentsLabel.textContent = "Comments:";
+      extraContainer.appendChild(tempCommentsLabel);
+      const tempCommentsInput = document.createElement("input");
+      tempCommentsInput.type = "text";
+      tempCommentsInput.classList.add("form-control");
+      tempCommentsInput.name = "tempSensor-comments";
+      extraContainer.appendChild(tempCommentsInput);
+      for (let i = 0; i < 2; i++) {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.classList.add("form-control", "image-upload");
+        extraContainer.appendChild(fileInput);
+        const preview = document.createElement("img");
+        preview.classList.add("image-preview");
+        extraContainer.appendChild(preview);
+      }
+      sensorItem.appendChild(extraContainer);
+      statusSelect.addEventListener("change", () => {
+        extraContainer.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+      });
+      container.appendChild(sensorItem);
+    }
+    
+    /* LOAD, CLEAR & SAVE Data */
     function clearEntireForm() {
       document.getElementById("schedule3-form").reset();
       const imageUploads = document.querySelectorAll(".image-upload");
