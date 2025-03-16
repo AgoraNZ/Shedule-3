@@ -55,7 +55,34 @@
       margin-top: 5px;
       border: 2px solid #ccc;
     }
-    .calibration-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
+    .calibration-container,
+    .temp-extra-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
+    /* Pilot Checks Page Styling */
+    .pilot-checks-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .farm-checks {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+      padding: 15px;
+      width: 45%;
+      min-width: 280px;
+    }
+    .farm-checks ul {
+      list-style: none;
+      padding: 0;
+    }
+    .farm-checks li {
+      padding: 5px 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .farm-checks li:last-child {
+      border-bottom: none;
+    }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
   </style>
 </head>
@@ -64,19 +91,19 @@
   <div class="container" id="form-container">
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Reporting Form</h1>
-    <form id="schedule3-form">
+    <form id="hygiene-checklist-form">
       <!-- Farm Details Section -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
-        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="off" spellcheck="false">
         <datalist id="dairy-company-list"></datalist>
         <label for="address">Address:</label>
-        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="customer-name">Customer Name:</label>
-        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="region">Region:</label>
         <select id="region" name="region" class="form-select">
           <option value="northland">Northland</option>
@@ -96,7 +123,7 @@
           <option value="southland">Southland</option>
         </select>
         <label for="farm-name">Farm Name:</label>
-        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="island">Island:</label>
         <select id="island" name="island" class="form-select">
           <option value="north-island">North Island</option>
@@ -105,13 +132,13 @@
         <label for="visit-date">Visit Date:</label>
         <input type="date" class="form-control" id="visit-date" name="visit-date">
         <label for="visit-type">Visit Type:</label>
-        <input type="text" class="form-control" id="visit-type" name="visit-type" value="Milking Plant & Milk Vat Check" readonly autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="visit-type" name="visit-type" value="Milking Plant & Milk Vat Check" readonly autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="inspection-start-time">Inspection Start Time:</label>
         <input type="time" class="form-control" id="inspection-start-time" name="inspection-start-time">
         <label for="inspection-end-time">Inspection End Time:</label>
         <input type="time" class="form-control" id="inspection-end-time" name="inspection-end-time">
         <label for="inspection-completed-by">Inspection Completed By:</label>
-        <input type="text" class="form-control" id="inspection-completed-by" name="inspection-completed-by" autocapitalize="words" autocorrect="on" spellcheck="false">
+        <input type="text" class="form-control" id="inspection-completed-by" name="inspection-completed-by" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="call-type">Call Type:</label>
         <select id="call-type" name="call-type" class="form-select">
           <option value="alert">Alert</option>
@@ -126,16 +153,126 @@
         <div id="health-safety-top"></div>
       </div>
       
-      <!-- Schedule 3 Checklist Section -->
+      <!-- Plant Checklist Section -->
       <div class="section mb-4">
-        <h2>Schedule 3 Checklist</h2>
+        <h2>Plant Checklist</h2>
         <div id="checklist-items"></div>
       </div>
       
-      <!-- Buttons -->
+      <!-- Silo Checklist Section -->
+      <div class="section mb-4">
+        <h2>Silo Checklist</h2>
+        <div id="silo-checklist"></div>
+      </div>
+      
+      <!-- Temperature Measurement Section -->
+      <div class="section mb-4" id="temp-measurement-section">
+        <h2>Temperature Measurement</h2>
+        <div class="mb-3">
+          <label for="hot-water-temp">Hot Water Temp (°C):</label>
+          <input type="text" class="form-control" id="hot-water-temp" name="hot-water-temp">
+        </div>
+        <div class="mb-3">
+          <label for="hot-water-time">Time Taken:</label>
+          <input type="time" class="form-control" id="hot-water-time" name="hot-water-time" placeholder="--:-- --">
+        </div>
+        <div class="mb-3">
+          <label for="milk-temp">Milk Temp (°C):</label>
+          <input type="text" class="form-control" id="milk-temp" name="milk-temp">
+        </div>
+        <div class="mb-3">
+          <label for="milk-time">Time Taken:</label>
+          <input type="time" class="form-control" id="milk-time" name="milk-time" placeholder="--:-- --">
+        </div>
+      </div>
+      
+      <!-- New Temperature Sensors Section -->
+      <div class="section mb-4" id="temperature-sensors-container">
+        <h2>Temperature Sensors</h2>
+      </div>
+      
+      <!-- Flow Meters Section -->
+      <div class="section mb-4" id="flow-meters-section">
+        <h2>Flow Meters</h2>
+        <!-- Acid Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Acid Flow Meter</h3>
+          <label for="acid-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="acid-flow-physical" name="acid-flow-physical">
+          <label for="acid-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="acid-flow-system" name="acid-flow-system">
+          <div class="calibration-container" id="acid-calibration">
+            <label for="acid-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="acid-pulse-old" name="acid-pulse-old">
+            <label for="acid-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="acid-pulse-new" name="acid-pulse-new">
+            <label for="acid-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="acid-new-test-physical" name="acid-new-test-physical">
+            <label for="acid-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="acid-new-system-result" name="acid-new-system-result">
+          </div>
+        </div>
+        <!-- Chlor Alkali Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Chlor Alkali Flow Meter</h3>
+          <label for="chlor-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="chlor-flow-physical" name="chlor-flow-physical">
+          <label for="chlor-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="chlor-flow-system" name="chlor-flow-system">
+          <div class="calibration-container" id="chlor-calibration">
+            <label for="chlor-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="chlor-pulse-old" name="chlor-pulse-old">
+            <label for="chlor-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="chlor-pulse-new" name="chlor-pulse-new">
+            <label for="chlor-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="chlor-new-test-physical" name="chlor-new-test-physical">
+            <label for="chlor-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="chlor-new-system-result" name="chlor-new-system-result">
+          </div>
+        </div>
+        <!-- Teat Concentrate Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Teat Concentrate Flow Meter</h3>
+          <label for="teat-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="teat-flow-physical" name="teat-flow-physical">
+          <label for="teat-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="teat-flow-system" name="teat-flow-system">
+          <div class="calibration-container" id="teat-calibration">
+            <label for="teat-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="teat-pulse-old" name="teat-pulse-old">
+            <label for="teat-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="teat-pulse-new" name="teat-pulse-new">
+            <label for="teat-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="teat-new-test-physical" name="teat-new-test-physical">
+            <label for="teat-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="teat-new-system-result" name="teat-new-system-result">
+          </div>
+        </div>
+        <!-- Water Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Water Flow Meter</h3>
+          <label for="water-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="water-flow-physical" name="water-flow-physical">
+          <label for="water-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="water-flow-system" name="water-flow-system">
+          <div class="calibration-container" id="water-calibration">
+            <label for="water-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="water-pulse-old" name="water-pulse-old">
+            <label for="water-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="water-pulse-new" name="water-pulse-new">
+            <label for="water-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="water-new-test-physical" name="water-new-test-physical">
+            <label for="water-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="water-new-system-result" name="water-new-system-result">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Buttons at the bottom of the form -->
       <div style="text-align: center;">
         <button type="button" onclick="generatePDF()">Generate PDF</button>
         <button type="button" onclick="viewRecords()">View All Records</button>
+        <button type="button" onclick="pilotChecks()">Pilot Checks</button>
       </div>
     </form>
     <div class="version">Version 6.1 (Agora)</div>
@@ -149,6 +286,76 @@
     </div>
     <div id="record-list" class="record-list"></div>
     <button class="back-button" onclick="goBack()">Back to Checklist</button>
+  </div>
+  
+  <!-- PILOT CHECKS PAGE -->
+  <div id="pilot-checks-page" class="record-container" style="display: none;">
+    <h2>Upcoming Agora Shed Checks</h2>
+    <div class="pilot-checks-container">
+      <!-- Brandmar Farm -->
+      <div class="farm-checks">
+        <h3>Brandmar Farm</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>Annual Check – Due: 19th June 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 19th June 2024</li>
+          <li>2 Week Check: 3rd July 2024</li>
+          <li>3 Month Check: 19th Sep 2024</li>
+          <li>6 Month Check: 19th Dec 2024</li>
+        </ul>
+      </div>
+      <!-- J Block -->
+      <div class="farm-checks">
+        <h3>J Block</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>6 Month Check – Due: 3rd June 2025</li>
+          <li>Annual Check – Due: 3rd Dec 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 3rd Dec 2024</li>
+          <li>2 Week Check: 17th Dec 2024</li>
+          <li>3 Month Check: 3rd Mar 2025</li>
+        </ul>
+      </div>
+      <!-- Pukerimu -->
+      <div class="farm-checks">
+        <h3>Pukerimu</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>Annual Check – Due: 23rd Aug 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 23rd Aug 2024</li>
+          <li>2 Week Check: 6th Sep 2024</li>
+          <li>3 Month Check: 22nd Nov 2024</li>
+          <li>6 Month Check: 24th Feb 2025</li>
+        </ul>
+      </div>
+      <!-- Ferry View -->
+      <div class="farm-checks">
+        <h3>Ferry View</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>3 Month Check – Due: 19th May 2025</li>
+          <li>6 Month Check – Due: 19th Aug 2025</li>
+          <li>Annual Check – Due: 19th Feb 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 19th Feb 2025</li>
+          <li>2 Week Check: 11th Mar 2025</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align: center;">
+      <button class="back-button" onclick="backToForm()">Back to Checklist</button>
+    </div>
   </div>
   
   <!-- SCRIPTS -->
@@ -198,7 +405,6 @@
       el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
     }
     
-    // Setup dairy company datalist
     async function setupDairyCompanyDatalist() {
       const defaultCompanies = [
         "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
@@ -229,19 +435,15 @@
       });
     }
     
-    // Fetch farm details from "Agora Farm Details" folder and auto-populate
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
-      console.log("Fetching farm details for dairy number:", dairyNumber);
       if (!dairyNumber) return;
       const storageRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
       try {
         const url = await storageRef.getDownloadURL();
-        console.log("Farm details URL:", url);
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch farm details');
         const data = await response.json();
-        console.log("Farm details data:", data);
         if (data) {
           document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
           document.getElementById('address').value = toTitleCase(data.address || '');
@@ -267,11 +469,11 @@
     async function handleDairyNumberBlur() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
-      await fetchFarmDetails();
+      fetchFarmDetails();
       await checkOrCreateFormRecord();
     }
     
-    /* Health & Safety Checklist */
+    /* Create checklist items similar to original */
     function createHealthSafetyItems(containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -296,7 +498,7 @@
       commentsInput.name = "comments-health-safety-notes";
       commentsInput.placeholder = "Comments";
       commentsInput.setAttribute("spellcheck", "true");
-      commentsInput.setAttribute("autocorrect", "on");
+      commentsInput.setAttribute("autocorrect", "off");
       itemContainer.appendChild(commentsInput);
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
@@ -540,37 +742,37 @@
       if (!navigator.onLine) return;
       const queuedPDFs = await db.pdfQueue.toArray();
       for (let pdfRecord of queuedPDFs) {
-        if (pdfRecord.target === "schedule3") {
-          try {
-            await uploadSinglePDFSchedule3(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
+        if(pdfRecord.target === "customers"){
+          try{
+            await uploadSinglePDFCustomer(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
             await db.pdfQueue.delete(pdfRecord.id);
-            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully (schedule3).`);
-          } catch (err) {
-            console.error("Retry PDF upload to schedule3 failed:", err);
-          }
+            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Customers.`);
+          } catch(err){ console.error("Retry PDF upload to Customers failed:", err); }
         }
       }
     }
     
-    function uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob) {
+    function uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob) {
       return new Promise((resolve, reject) => {
-        const uploadRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}/${fileName}`);
+        const uploadRef = storage.ref(`Agora Customers/${dairyNumber}/${fileName}`);
         const task = uploadRef.put(pdfBlob);
-        task.on("state_changed", null, (err) => reject(err), () => resolve());
+        task.on("state_changed", null, err => reject(err), () => resolve());
       });
     }
+    
+    window.addEventListener("online", uploadPendingPDFs);
     
     async function generatePDF() {
       const dairyNumber = document.getElementById("dairy-number").value.trim();
       if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
-      const form = document.getElementById("schedule3-form");
+      const form = document.getElementById("hygiene-checklist-form");
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Only include Health & Safety and Schedule 3 Checklist items
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
-        ...document.getElementById("checklist-items").children
+        ...document.getElementById("checklist-items").children,
+        ...document.getElementById("silo-checklist").children
       ];
       const checklistData = [];
       let imagePromises = [];
@@ -597,6 +799,17 @@
         }
         checklistData.push([itemName, status, comments]);
       });
+      
+      let tempSensorData = [];
+      const tsContainer = document.getElementById("temperature-sensors-container");
+      const tsItem = tsContainer.querySelector(".checklist-item");
+      if (tsItem) {
+        const tsType = tsItem.querySelector("input[name='tempSensor-type']").value;
+        const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
+        const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
+        const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
+        tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
+      }
       
       const pageWidth = 595;
       const leftColLabelWidth = pageWidth * 0.15;
@@ -635,6 +848,44 @@
           { content: (fd.get("call-type") || ""), styles: { fontStyle: "normal" } }
         ]
       ];
+      
+      const hotWaterTemp = fd.get("hot-water-temp") || "";
+      const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
+      const milkTemp = fd.get("milk-temp") || "";
+      const milkTime = fd.get("milk-time") || "--:-- --";
+      const tempMeasurementData = [
+        ["Hot Water Temp (°C):", hotWaterTemp],
+        ["Time Taken:", hotWaterTime],
+        ["Milk Temp (°C):", milkTemp],
+        ["Time Taken:", milkTime]
+      ];
+      
+      let flowMeters = [];
+      const flowMeterMapping = {
+         "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
+         "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
+         "Teat Concentrate Flow Meter": { main: "teat-flow", extra: "teat" },
+         "Water Flow Meter": { main: "water-flow", extra: "water" }
+      };
+      for (let meter in flowMeterMapping) {
+         const prefixes = flowMeterMapping[meter];
+         const physical = fd.get(prefixes.main + "-physical") || "";
+         const system = fd.get(prefixes.main + "-system") || "";
+         flowMeters.push([meter, physical + " ml", system + " ml"]);
+         const pulseOld = fd.get(prefixes.extra + "-pulse-old") || "";
+         const pulseNew = fd.get(prefixes.extra + "-pulse-new") || "";
+         const newTestPhysical = fd.get(prefixes.extra + "-new-test-physical") || "";
+         const newSystemResult = fd.get(prefixes.extra + "-new-system-result") || "";
+         if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
+           let extraLeft = "";
+           let extraRight = "";
+           if(pulseOld) extraLeft += "Pulse Old: " + pulseOld;
+           if(pulseNew) extraLeft += (extraLeft ? ", " : "") + "Pulse New: " + pulseNew;
+           if(newTestPhysical) extraRight += "Test Physical: " + newTestPhysical;
+           if(newSystemResult) extraRight += (extraRight ? ", " : "") + "System Result: " + newSystemResult;
+           flowMeters.push(["Calibration:", extraLeft, extraRight]);
+         }
+      }
       
       Promise.all(imagePromises).then(() => {
         finalizePDF();
@@ -690,6 +941,16 @@
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Temperature Measurement", ""]],
+            body: tempMeasurementData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
           pdf.setFont("helvetica", "bold");
           pdf.text("Checklist Items:", 40, currentY);
           currentY += 10;
@@ -702,6 +963,36 @@
             margin: { left: 40, right: 40 }
           });
           currentY = pdf.lastAutoTable.finalY + 20;
+          
+          if (tempSensorData.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Temperature Sensors:", 40, currentY);
+            currentY += 10;
+            pdf.autoTable({
+              startY: currentY,
+              head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
+              body: tempSensorData,
+              styles: { fontSize: 10, cellPadding: 5 },
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+              margin: { left: 40, right: 40 }
+            });
+            currentY = pdf.lastAutoTable.finalY + 20;
+          }
+          
+          if (flowMeters.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Flow Meters:", 40, currentY);
+            currentY += 10;
+            pdf.autoTable({
+              startY: currentY,
+              head: [["Meter", "Physical Test", "System Read"]],
+              body: flowMeters,
+              styles: { fontSize: 10, cellPadding: 5 },
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+              margin: { left: 40, right: 40 }
+            });
+            currentY = pdf.lastAutoTable.finalY + 20;
+          }
           
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
@@ -750,11 +1041,11 @@
             const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
             const fileName = `${fd.get("dairy-number")}-form-${formattedVisitDate}.pdf`;
             try {
-              await uploadSinglePDFSchedule3(dairyNumber, fileName, pdfBlob);
-              console.log("PDF uploaded to Agora schedule 3 Customers folder successfully");
+              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora Customers folder successfully");
             } catch(e) {
-              console.error("PDF upload to Agora schedule 3 Customers folder failed:", e);
-              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "schedule3" });
+              console.error("PDF upload to Agora Customers folder failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
             }
             db.forms.delete(fd.get("dairy-number"));
             pdf.save(fileName);
@@ -768,6 +1059,7 @@
     
     function viewRecords() {
       document.getElementById("form-container").style.display = "none";
+      document.getElementById("pilot-checks-page").style.display = "none";
       document.getElementById("record-container").style.display = "block";
       loadAllRecords();
     }
@@ -775,20 +1067,22 @@
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      const storageRef = storage.ref("Agora schedule 3 Customers");
+      const storageRef = storage.ref("Agora Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
+        // List any subfolders (dairy-number folders)
         if (folderSnapshot.prefixes.length > 0) {
           folderSnapshot.prefixes.forEach(folderRef => {
             const dairyNumber = folderRef.name;
             const link = document.createElement("a");
             link.textContent = dairyNumber;
             link.href = "#";
-            link.style.display = "block";
+            link.style.display = "block"; // ensure each link appears on its own line
             link.addEventListener("click", () => loadRecordFiles(dairyNumber));
             recordList.appendChild(link);
           });
         }
+        // In case files are stored directly in "Agora Customers"
         if (folderSnapshot.items.length > 0) {
           folderSnapshot.items.forEach(fileRef => {
             const fileName = fileRef.name;
@@ -815,7 +1109,7 @@
     async function loadRecordFiles(dairyNumber) {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      const folderRef = storage.ref(`Agora schedule 3 Customers/${dairyNumber}`);
+      const folderRef = storage.ref(`Agora Customers/${dairyNumber}`);
       try {
         const fileSnapshot = await folderRef.listAll();
         fileSnapshot.items.forEach(fileRef => {
@@ -861,16 +1155,51 @@
       document.getElementById("form-container").style.display = "block";
     }
     
+    function pilotChecks() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("pilot-checks-page").style.display = "block";
+    }
+    
+    function backToForm() {
+      document.getElementById("pilot-checks-page").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
+      const physicalInput = document.getElementById(physicalId);
+      const systemInput = document.getElementById(systemId);
+      const calibrationContainer = document.getElementById(calibrationId);
+      function updateCalibrationDisplay() {
+        const physicalValue = parseFloat(physicalInput.value);
+        const systemValue = parseFloat(systemInput.value);
+        if (!isNaN(physicalValue) && !isNaN(systemValue)) {
+          const tolerance = 0.05 * physicalValue;
+          calibrationContainer.style.display = (Math.abs(physicalValue - systemValue) > tolerance) ? "block" : "none";
+        } else {
+          calibrationContainer.style.display = "none";
+        }
+      }
+      physicalInput.addEventListener("input", updateCalibrationDisplay);
+      systemInput.addEventListener("input", updateCalibrationDisplay);
+    }
+    
     document.addEventListener("DOMContentLoaded", async () => {
       const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name", "inspection-completed-by"];
       fieldsToAutoCap.forEach(autoCapitalizeInput);
       await setupDairyCompanyDatalist();
       createHealthSafetyItems("health-safety-top");
-      createSchedule3ChecklistItems();
-      const form = document.getElementById("schedule3-form");
+      createChecklistItems();
+      createSiloChecklist();
+      createTemperatureSensorItem();
+      const form = document.getElementById("hygiene-checklist-form");
       form.addEventListener("input", saveFormData);
       form.addEventListener("change", saveFormData);
       uploadPendingPDFs();
+      setupFlowMeterTolerance("acid-flow-physical", "acid-flow-system", "acid-calibration");
+      setupFlowMeterTolerance("chlor-flow-physical", "chlor-flow-system", "chlor-calibration");
+      setupFlowMeterTolerance("teat-flow-physical", "teat-flow-system", "teat-calibration");
+      setupFlowMeterTolerance("water-flow-physical", "water-flow-system", "water-calibration");
     });
   </script>
 </body>
