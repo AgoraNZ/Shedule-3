@@ -89,7 +89,7 @@
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <!-- When blurred, "schedule3" is appended so that the JSON file name is e.g. "49schedule3.json" -->
+        <!-- When blurred, the function appends "schedule3" so that file name is e.g. "49schedule3.json" -->
         <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
         <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
@@ -190,7 +190,7 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const firestore = firebase.firestore();
-    // Dexie for local storage
+    // Use Dexie to store form data and dairy companies locally
     const db = new Dexie("OfflineData");
     db.version(5).stores({
       forms: "dairyNumber",
@@ -249,13 +249,12 @@
       });
     }
     
-    // Auto-populate farm details from Firebase Storage.
-    // Uses dairyNumber + "schedule3" (e.g. "49schedule3.json")
+    // Fetch farm details from the new folder: "Agora schedule 3 farm details"
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
       const key = dairyNumber + "schedule3";
-      const storageRef = storage.ref(`Agora Farm Details/${key}.json`);
+      const storageRef = storage.ref(`Agora schedule 3 farm details/${key}.json`);
       try {
         const url = await storageRef.getDownloadURL();
         const response = await fetch(url);
@@ -535,7 +534,8 @@
       });
     }
     
-    // Save farm details (basic fields + checklist extra data) to Firebase Storage
+    // Save farm details (basic fields plus checklist extra data) to Firebase Storage.
+    // Use the folder "Agora schedule 3 farm details"
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -569,9 +569,10 @@
       
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
-        const storageRefFarm = storage.ref(`Agora Farm Details/${key}.json`);
+        // Save to "Agora schedule 3 farm details" folder
+        const storageRefFarm = storage.ref(`Agora schedule 3 farm details/${key}.json`);
         await storageRefFarm.put(jsonBlob);
-        console.log("Farm details JSON saved to Agora Farm Details folder.");
+        console.log("Farm details JSON saved to Agora schedule 3 farm details folder.");
       } catch (err) {
         console.error("Error saving farm details JSON:", err);
       }
@@ -893,13 +894,13 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    // ALL FARMS view: For each dairy number JSON file in "Agora Farm Details" (ending with "schedule3.json")
-    // group by dairy number and list each checklist extra data row (Type, Install Date, Expiry Date)
+    // ALL FARMS view: Group JSON files in "Agora schedule 3 farm details" (ending with "schedule3.json")
+    // and display a table for each dairy number with columns: Type, Install Date, Expiry Date.
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
       try {
-        const storageRef = storage.ref("Agora Farm Details");
+        const storageRef = storage.ref("Agora schedule 3 farm details");
         const listResult = await storageRef.listAll();
         // Filter JSON files ending with "schedule3.json"
         const schedule3Files = listResult.items.filter(item =>
