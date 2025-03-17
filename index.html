@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- META & STYLES -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agora Schedule 3 Form</title>
@@ -63,22 +62,34 @@
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #002B5C; color: #fff; }
+    /* Styles for All Farms grouping */
+    .dairy-box {
+      border: 1px solid #002B5C;
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .dairy-box h4 {
+      margin-bottom: 10px;
+    }
+    .controls {
+      margin-bottom: 15px;
+    }
     .version { text-align: center; margin-top: 20px; font-size: 12px; color: #333; }
   </style>
 </head>
 <body>
-  <!-- MAIN FORM CONTAINER -->
+  <!-- Main Form Container -->
   <div class="container" id="form-container">
     <!-- Logo -->
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" 
-         alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Schedule 3 Form</h1>
     <form id="schedule3-form">
       <!-- Farm Details Section -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <!-- On blur, the function now appends "schedule3" to the dairy number -->
+        <!-- When blurred, "schedule3" is appended so that the JSON file name is e.g. "49schedule3.json" -->
         <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="on" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
         <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="on" spellcheck="false">
@@ -116,7 +127,7 @@
         <input type="date" class="form-control" id="visit-date" name="visit-date">
       </div>
       
-      <!-- Checklist Section (Schedule3 Items) -->
+      <!-- Checklist Section -->
       <div class="section mb-4">
         <h2>Checklist Items</h2>
         <div id="checklist-items"></div>
@@ -129,10 +140,10 @@
         <button type="button" onclick="allFarms()">All Farms</button>
       </div>
     </form>
-    <div class="version">Version 1.1 (Agora Schedule 3)</div>
+    <div class="version">Version 1.2 (Agora Schedule 3)</div>
   </div>
   
-  <!-- RECORDS VIEW -->
+  <!-- RECORDS VIEW (for PDFs) -->
   <div id="record-container" class="record-container" style="display: none;">
     <h2>All Schedule 3 Records</h2>
     <div class="search-container">
@@ -142,14 +153,23 @@
     <button class="back-button" onclick="goBack()">Back to Form</button>
   </div>
   
-  <!-- ALL FARMS VIEW -->
+  <!-- ALL FARMS VIEW (Grid for checklist extra data) -->
   <div id="all-farms-container" class="all-farms-container" style="display: none;">
     <h2>All Farms (Schedule 3)</h2>
+    <!-- Controls: Search and Expiry Filter -->
+    <div class="controls">
+      <input type="text" id="all-farms-search" class="form-control" placeholder="Search Dairy Number" oninput="filterFarms()">
+      <select id="expiry-filter" class="form-select" onchange="filterFarms()">
+        <option value="all">All Expiry Dates</option>
+        <option value="soon">Expiring Soon (within 30 days)</option>
+        <option value="later">Expiring Later (beyond 30 days)</option>
+      </select>
+    </div>
     <div id="farms-grid"></div>
     <button class="back-button" onclick="backToForm()">Back to Form</button>
   </div>
   
-  <!-- SCRIPTS: Firebase, Dexie, jsPDF & jsPDF-AutoTable libraries -->
+  <!-- SCRIPTS: Firebase, Dexie, jsPDF, and jsPDF-AutoTable -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
@@ -170,7 +190,7 @@
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const firestore = firebase.firestore();
-    // Dexie database to store form data and dairy companies locally
+    // Dexie for local storage
     const db = new Dexie("OfflineData");
     db.version(5).stores({
       forms: "dairyNumber",
@@ -185,7 +205,7 @@
         .catch(err => console.error('SW registration failed:', err));
     }
     
-    /* Utility Functions */
+    // Utility Functions
     function toTitleCase(str) {
       return str.replace(/\w\S*/g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -229,7 +249,8 @@
       });
     }
     
-    // Use the dairy number with the suffix "schedule3"
+    // Auto-populate farm details from Firebase Storage.
+    // Uses dairyNumber + "schedule3" (e.g. "49schedule3.json")
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
       if (!dairyNumber) return;
@@ -249,6 +270,22 @@
           document.getElementById('island').value = data.island || '';
           if(data.visitDate) {
             document.getElementById('visit-date').value = data.visitDate;
+          }
+          // Populate checklist extra data if available
+          if(data.checklistExtra) {
+            const containers = document.getElementById("checklist-items").children;
+            Array.from(containers).forEach(container => {
+              const label = container.querySelector("label");
+              if(!label) return;
+              const keyItem = label.textContent.trim();
+              if(data.checklistExtra[keyItem]) {
+                const extra = data.checklistExtra[keyItem];
+                const installInput = container.querySelector(`input[name="install-${keyItem}"]`);
+                const replacementInput = container.querySelector(`input[name="replacement-${keyItem}"]`);
+                if(installInput) installInput.value = extra.installDate || "";
+                if(replacementInput) replacementInput.value = extra.replacementDueDate || "";
+              }
+            });
           }
         }
       } catch (error) {
@@ -272,7 +309,7 @@
       await checkOrCreateFormRecord();
     }
     
-    /* Create Schedule3 Checklist Items with extra fields */
+    /* Create Checklist Items with extra fields */
     function createSchedule3ChecklistItems() {
       const checklistItems = [
         "Cluster to milk line",
@@ -312,7 +349,7 @@
         commentsInput.setAttribute("spellcheck", "true");
         commentsInput.setAttribute("autocorrect", "on");
         itemContainer.appendChild(commentsInput);
-        // Add file inputs (hidden unless attention-required is selected)
+        // File inputs for photos (hidden unless attention-required)
         for (let i = 0; i < 2; i++) {
           const fileInput = document.createElement("input");
           fileInput.type = "file";
@@ -364,7 +401,7 @@
         rubberwareDiv.appendChild(qtyInput);
         extraDiv.appendChild(rubberwareDiv);
         itemContainer.appendChild(extraDiv);
-        // Only show file inputs when status is attention-required
+        // Show file inputs only when "attention-required" is selected
         statusSelect.addEventListener("change", () => {
           const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
           fileInputs.forEach(inp => {
@@ -375,7 +412,7 @@
       });
     }
     
-    /* LOAD, CLEAR & SAVE Data for Schedule3 */
+    /* LOAD, CLEAR & SAVE Data */
     function loadFormDataFromRecord(record) {
       const data = record.formData || {};
       document.getElementById("dairy-number").value = data["dairy-number"] || record.dairyNumber;
@@ -389,9 +426,9 @@
         Array.from(containers).forEach(container => {
           const label = container.querySelector("label");
           if (!label) return;
-          const key = label.textContent.trim();
-          if (data.checklistItems[key]) {
-            const { status, comments, extra, imagesBase64 } = data.checklistItems[key];
+          const keyItem = label.textContent.trim();
+          if (data.checklistItems[keyItem]) {
+            const { status, comments, extra, imagesBase64 } = data.checklistItems[keyItem];
             const statusSelect = container.querySelector("select");
             if (statusSelect) {
               statusSelect.value = status;
@@ -400,11 +437,11 @@
             const commentsInput = container.querySelector('input[type="text"]');
             if (commentsInput) { commentsInput.value = comments; }
             if (extra) {
-              const installIn = container.querySelector(`input[name="install-${key}"]`);
-              const replacementIn = container.querySelector(`input[name="replacement-${key}"]`);
-              const dimIn = container.querySelector(`input[name="rubberware-dimensions-${key}"]`);
-              const lengthIn = container.querySelector(`input[name="rubberware-length-${key}"]`);
-              const qtyIn = container.querySelector(`input[name="rubberware-quantity-${key}"]`);
+              const installIn = container.querySelector(`input[name="install-${keyItem}"]`);
+              const replacementIn = container.querySelector(`input[name="replacement-${keyItem}"]`);
+              const dimIn = container.querySelector(`input[name="rubberware-dimensions-${keyItem}"]`);
+              const lengthIn = container.querySelector(`input[name="rubberware-length-${keyItem}"]`);
+              const qtyIn = container.querySelector(`input[name="rubberware-quantity-${keyItem}"]`);
               if (installIn) installIn.value = extra.installDate || "";
               if (replacementIn) replacementIn.value = extra.replacementDueDate || "";
               if (dimIn) dimIn.value = extra.rubberwareDimensions || "";
@@ -448,16 +485,16 @@
       await Promise.all(Array.from(checklistContainers).map(async container => {
         const label = container.querySelector("label");
         if (!label) return;
-        const key = label.textContent.trim();
+        const keyItem = label.textContent.trim();
         const statusSelect = container.querySelector("select");
         const status = statusSelect ? statusSelect.value : "";
         const commentsInput = container.querySelector('input[type="text"]');
         let comments = commentsInput ? commentsInput.value : "";
-        const installInput = container.querySelector(`input[name="install-${key}"]`);
-        const replacementInput = container.querySelector(`input[name="replacement-${key}"]`);
-        const dimInput = container.querySelector(`input[name="rubberware-dimensions-${key}"]`);
-        const lengthInput = container.querySelector(`input[name="rubberware-length-${key}"]`);
-        const qtyInput = container.querySelector(`input[name="rubberware-quantity-${key}"]`);
+        const installInput = container.querySelector(`input[name="install-${keyItem}"]`);
+        const replacementInput = container.querySelector(`input[name="replacement-${keyItem}"]`);
+        const dimInput = container.querySelector(`input[name="rubberware-dimensions-${keyItem}"]`);
+        const lengthInput = container.querySelector(`input[name="rubberware-length-${keyItem}"]`);
+        const qtyInput = container.querySelector(`input[name="rubberware-quantity-${keyItem}"]`);
         const extra = {
           installDate: installInput ? installInput.value : "",
           replacementDueDate: replacementInput ? replacementInput.value : "",
@@ -481,7 +518,7 @@
           const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
           comments += photoNote;
         }
-        checklistItemsData[key] = { status, comments, extra, imagesBase64 };
+        checklistItemsData[keyItem] = { status, comments, extra, imagesBase64 };
       }));
       data.checklistItems = checklistItemsData;
       
@@ -498,12 +535,10 @@
       });
     }
     
-    // Save basic farm details (only basic fields) to Firebase Storage.
-    // To include checklist extra data in the JSON, merge them into the "farmDetails" object.
+    // Save farm details (basic fields + checklist extra data) to Firebase Storage
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
-      // Use the "schedule3" suffix consistently
       const key = dairyNumber + "schedule3";
       const farmDetails = {
         dairyCompany: fd.get("dairy-company") || "",
@@ -513,8 +548,25 @@
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || "",
         visitDate: fd.get("visit-date") || ""
-        // To include checklist extra data, merge here as needed.
       };
+      // Merge checklist extra data
+      const checklistContainers = document.getElementById("checklist-items").children;
+      const checklistExtra = {};
+      Array.from(checklistContainers).forEach(container => {
+        const label = container.querySelector("label");
+        if (!label) return;
+        const keyItem = label.textContent.trim();
+        const installInput = container.querySelector(`input[name="install-${keyItem}"]`);
+        const replacementInput = container.querySelector(`input[name="replacement-${keyItem}"]`);
+        if (installInput && (installInput.value || (replacementInput && replacementInput.value))) {
+          checklistExtra[keyItem] = {
+            installDate: installInput.value || "",
+            replacementDueDate: replacementInput ? replacementInput.value : ""
+          };
+        }
+      });
+      farmDetails.checklistExtra = checklistExtra;
+      
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
         const storageRefFarm = storage.ref(`Agora Farm Details/${key}.json`);
@@ -754,7 +806,7 @@
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
-      // For simplicity, list files from the "Agora schedule 3 Customers" folder
+      // List files from the "Agora schedule 3 Customers" folder
       const storageRef = storage.ref("Agora schedule 3 Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
@@ -841,14 +893,15 @@
       document.getElementById("form-container").style.display = "block";
     }
     
-    // ALL FARMS view: Look in "Agora Farm Details" folder for files ending with "schedule3.json"
+    // ALL FARMS view: For each dairy number JSON file in "Agora Farm Details" (ending with "schedule3.json")
+    // group by dairy number and list each checklist extra data row (Type, Install Date, Expiry Date)
     async function loadAllFarms() {
       const farmsGrid = document.getElementById("farms-grid");
       farmsGrid.innerHTML = "";
       try {
         const storageRef = storage.ref("Agora Farm Details");
         const listResult = await storageRef.listAll();
-        // Filter files that end with "schedule3.json"
+        // Filter JSON files ending with "schedule3.json"
         const schedule3Files = listResult.items.filter(item =>
           item.name.toLowerCase().endsWith("schedule3.json")
         );
@@ -856,44 +909,98 @@
           farmsGrid.textContent = "No farm records found.";
           return;
         }
-        const table = document.createElement("table");
-        table.classList.add("table", "table-striped");
-        const thead = document.createElement("thead");
-        thead.innerHTML = `
-          <tr>
-            <th>Dairy Number</th>
-            <th>Farm Name</th>
-            <th>Dairy Company</th>
-            <th>Visit Date</th>
-          </tr>
-        `;
-        table.appendChild(thead);
-        const tbody = document.createElement("tbody");
+        // For each file, fetch JSON and create a dairy box with a table of checklist extra data
         for (const fileRef of schedule3Files) {
           try {
             const url = await fileRef.getDownloadURL();
             const response = await fetch(url);
             const json = await response.json();
-            // Extract dairy number by removing the "schedule3.json" suffix
+            // Extract dairy number by removing "schedule3.json"
             const dairyNumber = fileRef.name.replace(/schedule3\.json$/i, "");
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${dairyNumber}</td>
-              <td>${json.farmName || ""}</td>
-              <td>${json.dairyCompany || ""}</td>
-              <td>${json.visitDate || ""}</td>
+            const dairyBox = document.createElement("div");
+            dairyBox.classList.add("dairy-box");
+            const header = document.createElement("h4");
+            header.textContent = `Dairy # ${dairyNumber}`;
+            dairyBox.appendChild(header);
+            
+            // Create table for checklist extra data
+            const table = document.createElement("table");
+            table.classList.add("table", "table-bordered");
+            const thead = document.createElement("thead");
+            thead.innerHTML = `
+              <tr>
+                <th>Type</th>
+                <th>Install Date</th>
+                <th>Expiry Date</th>
+              </tr>
             `;
-            tbody.appendChild(tr);
+            table.appendChild(thead);
+            const tbody = document.createElement("tbody");
+            if (json.checklistExtra) {
+              Object.keys(json.checklistExtra).forEach(type => {
+                const extra = json.checklistExtra[type];
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${type}</td>
+                  <td>${extra.installDate || ""}</td>
+                  <td>${extra.replacementDueDate || ""}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            } else {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td colspan="3">No checklist extra data found.</td>`;
+              tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+            dairyBox.appendChild(table);
+            farmsGrid.appendChild(dairyBox);
           } catch (error) {
             console.error("Error processing file:", fileRef.name, error);
           }
         }
-        table.appendChild(tbody);
-        farmsGrid.appendChild(table);
       } catch (error) {
         console.error("Error loading all farms:", error);
         farmsGrid.textContent = "Error loading farms.";
       }
+    }
+    
+    // Filter function for the All Farms view using search and expiry filter
+    function filterFarms() {
+      const searchValue = document.getElementById("all-farms-search").value.toLowerCase();
+      const filterValue = document.getElementById("expiry-filter").value;
+      const dairyBoxes = document.querySelectorAll(".dairy-box");
+      const today = new Date();
+      dairyBoxes.forEach(box => {
+        // Check if dairy number (in header) matches search term
+        const headerText = box.querySelector("h4").textContent.toLowerCase();
+        let matchesSearch = headerText.includes(searchValue);
+        // Check expiry filter: if any row in this box matches criteria
+        let matchesFilter = true;
+        if (filterValue !== "all") {
+          let boxMatches = false;
+          const rows = box.querySelectorAll("tbody tr");
+          rows.forEach(row => {
+            const expiryText = row.cells[2].textContent.trim();
+            if (expiryText) {
+              const expiryDate = new Date(expiryText);
+              const diffDays = (expiryDate - today) / (1000 * 60 * 60 * 24);
+              if (filterValue === "soon" && diffDays >= 0 && diffDays <= 30) {
+                boxMatches = true;
+              } else if (filterValue === "later" && diffDays > 30) {
+                boxMatches = true;
+              }
+            }
+          });
+          matchesFilter = boxMatches;
+        }
+        // Show the dairy box if both conditions are met
+        if (matchesSearch && matchesFilter) {
+          box.style.display = "";
+        } else {
+          box.style.display = "none";
+        }
+      });
     }
     
     function allFarms() {
